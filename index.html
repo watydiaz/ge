@@ -19,6 +19,7 @@
                     <h1>Sistema de Cálculo de Fletes - Modelo Mixto</h1>
                     <p>Dimensión Operativa (Volumen × Distancia) + Dimensión Financiera (Peso × Costos)</p>
                 </div>
+                <a href="modelo_costos_flete.html" style="margin-left:16px;background:#2563eb;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Modelo de Costos</a>
             </div>
         </header>
 
@@ -80,41 +81,111 @@
             </div>
         </section>
 
-        <!-- Módulo 2: Gestión de Clientes y Productos -->
+        <!-- Módulo 2: Agregar Pedidos/Productos a la Carga -->
         <section class="card">
-            <h2>Clientes y Carga del Camión</h2>
-            <div
-                style="background: #eff6ff; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #2563eb;">
-                <p style="color: #1e40af; font-size: 0.875em; margin: 0; font-weight: 500;">
-                    <strong>Modelo Mixto de Cálculo:</strong><br>
-                    • <strong>Operativo:</strong> El flete se asigna proporcionalmente por <strong>Volumen ×
-                        Distancia</strong><br>
-                    • <strong>Financiero:</strong> El análisis de rentabilidad se evalúa por <strong>Peso × Costo
-                        SAP</strong>
-                </p>
+            <h2>📦 Carga del Camión</h2>
+            
+            <div style="background: #eff6ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 3px solid #2563eb;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <p style="color: #1e40af; font-size: 0.95em; margin: 0; font-weight: 600;">
+                            💡 Agregar productos al camión
+                        </p>
+                        <p style="color: #64748b; font-size: 0.85em; margin: 5px 0 0 0;">
+                            El sistema validará que no exceda la capacidad seleccionada
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.85em; color: #64748b;">Ocupación</div>
+                        <div id="porcentajeOcupacion" style="font-size: 1.3em; font-weight: bold; color: #2563eb;">0%</div>
+                    </div>
+                </div>
             </div>
+
             <div id="alertaCapacidad" class="alert alert-warning" style="display:none; margin-bottom: 15px;"></div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="nombreCliente">Nombre del Cliente:</label>
-                    <input type="text" id="nombreCliente" placeholder="Ingrese nombre del cliente">
+            <!-- Formulario para agregar productos -->
+            <div style="background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 0.95em; color: #334155;">➕ Agregar Producto/Pedido</h3>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="nombreProducto">Producto:</label>
+                        <input type="text" id="nombreProducto" list="productosEjemplo" placeholder="Ej: COL MONARCA 100X190X28">
+                        <datalist id="productosEjemplo">
+                            <option value="LAM UT 200,0x200,0x004,0">
+                            <option value="COL MONARCA 100X190X28 JAC">
+                            <option value="COL CONFORT PREMIUM 140X190X34 NUBE 4.0">
+                        </datalist>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="clientePedido">Cliente:</label>
+                        <input type="text" id="clientePedido" placeholder="Nombre cliente">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="ordenCompra">Orden de Compra:</label>
+                        <input type="text" id="ordenCompra" placeholder="OC-XXX">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="destinoCliente">Destino Específico:</label>
-                    <select id="destinoCliente">
-                        <option value="">-- Seleccione destino --</option>
-                    </select>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="destinoCliente">📍 Destino del Pedido:</label>
+                        <select id="destinoCliente">
+                            <option value="">-- Seleccione destino --</option>
+                        </select>
+                        <small style="color: #64748b; margin-top: 3px; display: block;">Distancia: <span id="distanciaSeleccionada">0 km</span></small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="cantidadProducto">Cantidad:</label>
+                        <input type="number" id="cantidadProducto" placeholder="100" min="1">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="ordenCompraCliente">Orden de Compra:</label>
-                    <input type="text" id="ordenCompraCliente" placeholder="OC-XXX">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto; gap: 10px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="volumenUnitario">Vol. Unit. (m³):</label>
+                        <input type="number" id="volumenUnitario" placeholder="0.05" step="0.001">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="pesoUnitario">Peso Unit. (kg):</label>
+                        <input type="number" id="pesoUnitario" placeholder="50" step="0.1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="precioUnitario">Precio Unit. ($):</label>
+                        <input type="number" id="precioUnitario" placeholder="35000" step="100">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Vol. Total:</label>
+                        <input type="text" id="volumenTotalPrevio" readonly style="background: #f1f5f9; font-weight: bold;" value="0.00 m³">
+                    </div>
+                    <button onclick="agregarPedido()" class="btn-secondary" style="height: fit-content; margin-top: 24px;">
+                        ➕ Agregar
+                    </button>
                 </div>
-                <button onclick="agregarCliente()" class="btn-secondary" style="height: fit-content;">+ Agregar
-                    Cliente</button>
+                
+                <!-- Botones de ejemplo -->
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                    <small style="color: #64748b; display: block; margin-bottom: 8px;">⚡ Ejemplos rápidos:</small>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="cargarEjemplo(1)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
+                            Colchón Monarca
+                        </button>
+                        <button onclick="cargarEjemplo(2)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
+                            Colchón Premium
+                        </button>
+                        <button onclick="cargarEjemplo(3)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
+                            Laminado 200x200
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div id="clientesContainer"></div>
+            <!-- Lista de pedidos agregados -->
+            <div id="listaPedidos" style="display:none; margin-top: 20px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 0.95em; color: #334155;">📋 Pedidos en el Camión</h3>
+                <div id="pedidosContainer"></div>
+            </div>
         </section>
 
         <!-- Módulo 3: Resumen y Cálculo del Despacho -->
@@ -224,6 +295,43 @@
                 <button onclick="nuevoDespacho()" class="btn-secondary">Nuevo Despacho</button>
             </div>
         </section>
+
+        <!-- Ejemplo de tabla de asignación de flete por volumen -->
+        <h2 style="margin-top:32px;">Ejemplo de tabla de asignación de flete por volumen</h2>
+        <table style="margin-top:12px;">
+            <thead>
+                <tr>
+                    <th>N° Ruta</th>
+                    <th>Nombre Ruta</th>
+                    <th>Tipo Vehículo</th>
+                    <th>Costo Flete ($)</th>
+                    <th>Canal</th>
+                    <th>ID Producto</th>
+                    <th>Descripción Producto</th>
+                    <th>Medidas (m)</th>
+                    <th>Unidades</th>
+                    <th>Vol. Unitario (m³)</th>
+                    <th>Vol. Total (m³)</th>
+                    <th>Ocupación Volumétrica (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>08</td>
+                    <td>ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA</td>
+                    <td>25 m³</td>
+                    <td>970.659</td>
+                    <td>Tradicional</td>
+                    <td>90050271</td>
+                    <td>COLCHÓN MONARCA 100X190X28 JAC</td>
+                    <td>1.00 x 1.90 x 0.28</td>
+                    <td>6</td>
+                    <td>0.53</td>
+                    <td>3.18</td>
+                    <td>12.72%</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <!-- Modelos -->
@@ -231,6 +339,11 @@
     <script src="models/CamionModel.js"></script>
     <script src="models/DespachoModel.js"></script>
     <script src="models/CalculoModel.js"></script>
+    <script src="models/ClienteSAPModel.js"></script>
+
+    <!-- Base de Datos (opcional - si existe BD) -->
+    <script src="config/database.js"></script>
+    <script src="database/DatabaseAdapter.js"></script>
 
     <!-- Vistas -->
     <script src="views/ConfiguracionViajeView.js"></script>
@@ -243,6 +356,9 @@
 
     <!-- Aplicación Principal -->
     <script src="assets/js/app.js"></script>
+    
+    <!-- Manejador de Destinos -->
+    <script src="assets/js/destinos-handler.js"></script>
 </body>
 
 </html>

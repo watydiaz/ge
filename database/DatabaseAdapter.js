@@ -139,6 +139,13 @@ class DatabaseAdapter {
     }
 
     /**
+     * Alias de findAll para compatibilidad
+     */
+    async getAll(table) {
+        return this.findAll(table);
+    }
+
+    /**
      * Busca registros por índice
      */
     async findBy(table, indexName, value) {
@@ -215,9 +222,16 @@ class DatabaseAdapter {
      * Obtiene la versión actual de la BD
      */
     async getVersion() {
-        const migrations = await this.findAll('migraciones').catch(() => []);
-        const versions = migrations.map(m => m.version).sort((a, b) => b - a);
-        return versions[0] || 0;
+        try {
+            if (!this.db.objectStoreNames.contains('migraciones')) {
+                return 0;
+            }
+            const migrations = await this.findAll('migraciones');
+            const versions = migrations.map(m => m.version).sort((a, b) => b - a);
+            return versions[0] || 0;
+        } catch (error) {
+            return 0;
+        }
     }
 
     /**

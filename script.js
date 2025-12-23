@@ -99,21 +99,23 @@ let contadorClientes = 0;
 // INICIALIZACIÓN
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    cargarRutas();
-    establecerFechaActual();
-});
+// Eliminar la carga de rutas desde script.js para evitar conflicto con MVC
+// document.addEventListener('DOMContentLoaded', function() {
+//     cargarRutas();
+//     establecerFechaActual();
+// });
 
-function cargarRutas() {
-    const selectRuta = document.getElementById('ruta');
-    RUTAS.forEach(ruta => {
-        const option = document.createElement('option');
-        option.value = ruta.id;
-        option.textContent = ruta.nombre;
-        selectRuta.appendChild(option);
-    });
-}
+// function cargarRutas() {
+//     const selectRuta = document.getElementById('ruta');
+//     RUTAS.forEach(ruta => {
+//         const option = document.createElement('option');
+//         option.value = ruta.id;
+//         option.textContent = ruta.nombre;
+//         selectRuta.appendChild(option);
+//     });
+// }
 
+// Solo establecer la fecha actual
 function establecerFechaActual() {
     const hoy = new Date().toISOString().split('T')[0];
     document.getElementById('fechaDespacho').value = hoy;

@@ -24,7 +24,11 @@ class ConfiguracionViajeView {
         rutas.forEach(ruta => {
             const option = document.createElement('option');
             option.value = ruta.id;
-            option.textContent = ruta.nombre;
+            option.textContent = `${ruta.codigo} - ${ruta.nombre}`;
+            // Guardar destinos como data attribute para uso posterior
+            if (ruta.destinos && ruta.destinos.length > 0) {
+                option.dataset.destinos = JSON.stringify(ruta.destinos);
+            }
             this.selectRuta.appendChild(option);
         });
     }

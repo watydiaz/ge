@@ -1,6 +1,7 @@
 /**
  * Modelo de Despacho
  * Gestiona el estado y lógica de negocio del despacho
+ * Funciona como calculadora de fletes
  */
 
 class DespachoModel {
@@ -13,11 +14,13 @@ class DespachoModel {
      */
     reset() {
         this.ruta = null;
+        this.rutaId = null;
         this.fecha = null;
         this.observaciones = "";
-        this.clientes = [];
-        this.contadorClientes = 0;
+        this.pedidos = []; // Lista de pedidos/productos
+        this.contadorPedidos = 0;
         this.tipoCamionSeleccionado = null;
+        this.capacidadCamion = 0; // m³
     }
 
     /**
@@ -25,6 +28,7 @@ class DespachoModel {
      */
     establecerRuta(ruta) {
         this.ruta = ruta;
+        this.rutaId = ruta ? ruta.id : null;
     }
 
     /**
@@ -46,121 +50,114 @@ class DespachoModel {
      */
     establecerTipoCamion(capacidad) {
         this.tipoCamionSeleccionado = capacidad;
+        this.capacidadCamion = parseFloat(capacidad);
     }
 
     /**
-     * Agrega un nuevo cliente al despacho
+     * Agrega un nuevo pedido/producto al despacho
      */
-    agregarCliente(datos) {
-        this.contadorClientes++;
-        const clienteId = `cliente_${this.contadorClientes}`;
+    agregarPedido(datos) {
+        this.contadorPedidos++;
+        const pedidoId = `pedido_${this.contadorPedidos}`;
 
-        const cliente = {
-            id: clienteId,
-            nombre: datos.nombre,
-            destino: datos.destino,
-            ordenCompra: datos.ordenCompra || 'N/A',
-            productos: []
+        // Calcular totales
+        const volumenTotal = datos.volumenUnitario * datos.cantidad;
+        const pesoTotal = datos.pesoUnitario * datos.cantidad;
+        const valorTotal = (datos.precioUnitario || 0) * datos.cantidad;
+
+        const pedido = {
+            id: pedidoId,
+            // Datos del cliente/destino
+            cliente: datos.cliente || 'Cliente General',
+            destino: datos.destino || 'Destino Final',
+            distancia: datos.distancia || 0,
+            ordenCompra: datos.ordenCompra || `OC-${this.contadorPedidos}`,
+            
+            // Datos del producto
+            producto: datos.producto,
+            cantidad: datos.cantidad,
+            
+            // Dimensiones unitarias
+            volumenUnitario: datos.volumenUnitario, // m³
+            pesoUnitario: datos.pesoUnitario, // kg
+            precioUnitario: datos.precioUnitario || 0,
+            
+            // Totales calculados
+            volumenTotal,
+            pesoTotal,
+            valorTotal,
+            
+            // Metadata
+            fechaAgregado: new Date().toISOString()
         };
 
-        this.clientes.push(cliente);
-        return cliente;
+        this.pedidos.push(pedido);
+        return pedido;
     }
 
     /**
-     * Elimina un cliente del despacho
+     * Elimina un pedido del despacho
      */
-    eliminarCliente(clienteId) {
-        this.clientes = this.clientes.filter(c => c.id !== clienteId);
+    eliminarPedido(pedidoId) {
+        this.pedidos = this.pedidos.filter(p => p.id !== pedidoId);
     }
 
     /**
-     * Obtiene un cliente por su ID
+     * Obtiene un pedido por su ID
      */
-    obtenerCliente(clienteId) {
-        return this.clientes.find(c => c.id === clienteId);
+    obtenerPedido(pedidoId) {
+        return this.pedidos.find(p => p.id === pedidoId);
     }
 
     /**
-     * Agrega un producto a un cliente
-     */
-    agregarProducto(clienteId, datos) {
-        const cliente = this.obtenerCliente(clienteId);
-        if (!cliente) {
-            throw new Error('Cliente no encontrado');
-        }
-
-        const productoId = `${clienteId}_prod_${cliente.productos.length + 1}`;
-
-        const producto = {
-            id: productoId,
-            nombre: datos.nombre,
-            volumenUnitario: datos.volumenUnitario,
-            pesoUnitario: datos.pesoUnitario,
-            unidades: datos.unidades,
-            precioUnitario: datos.precioUnitario,
-            volumenTotal: datos.volumenUnitario * datos.unidades,
-            pesoTotal: datos.pesoUnitario * datos.unidades,
-            valorTotal: datos.precioUnitario * datos.unidades
-        };
-
-        cliente.productos.push(producto);
-        return producto;
-    }
-
-    /**
-     * Elimina un producto de un cliente
-     */
-    eliminarProducto(clienteId, productoId) {
-        const cliente = this.obtenerCliente(clienteId);
-        if (!cliente) {
-            throw new Error('Cliente no encontrado');
-        }
-
-        cliente.productos = cliente.productos.filter(p => p.id !== productoId);
-    }
-
-    /**
-     * Calcula el volumen total del despacho
+     * Calcula el volumen total ocupado
      */
     calcularVolumenTotal() {
-        let total = 0;
-        this.clientes.forEach(cliente => {
-            cliente.productos.forEach(producto => {
-                total += producto.volumenTotal;
-            });
-        });
-        return total;
+        return this.pedidos.reduce((total, p) => total + p.volumenTotal, 0);
     }
 
     /**
-     * Calcula el peso total del despacho
+     * Calcula el peso total
      */
     calcularPesoTotal() {
-        let total = 0;
-        this.clientes.forEach(cliente => {
-            cliente.productos.forEach(producto => {
-                total += producto.pesoTotal;
-            });
-        });
-        return total;
+        return this.pedidos.reduce((total, p) => total + p.pesoTotal, 0);
     }
 
     /**
-     * Calcula el valor total del despacho
+     * Calcula el valor total de la carga
      */
     calcularValorTotal() {
-        let total = 0;
-        this.clientes.forEach(cliente => {
-            cliente.productos.forEach(producto => {
-                total += producto.valorTotal;
-            });
-        });
-        return total;
+        return this.pedidos.reduce((total, p) => total + p.valorTotal, 0);
     }
 
     /**
-     * Valida que el despacho esté listo para calcular
+     * Verifica si hay capacidad disponible para un nuevo pedido
+     */
+    verificarCapacidad(volumenNuevo) {
+        const volumenActual = this.calcularVolumenTotal();
+        const volumenFinal = volumenActual + volumenNuevo;
+        
+        return {
+            hayCapacidad: volumenFinal <= this.capacidadCamion,
+            volumenActual,
+            volumenNuevo,
+            volumenFinal,
+            capacidadCamion: this.capacidadCamion,
+            espacioDisponible: this.capacidadCamion - volumenActual,
+            porcentajeUso: (volumenFinal / this.capacidadCamion) * 100
+        };
+    }
+
+    /**
+     * Obtiene el porcentaje de ocupación del camión
+     */
+    obtenerPorcentajeOcupacion() {
+        if (!this.capacidadCamion) return 0;
+        return (this.calcularVolumenTotal() / this.capacidadCamion) * 100;
+    }
+
+    /**
+     * Valida si el despacho está listo para calcular
      */
     validarDespacho() {
         const errores = [];
@@ -173,37 +170,48 @@ class DespachoModel {
             errores.push('Debe seleccionar un tipo de camión');
         }
 
-        if (this.clientes.length === 0) {
-            errores.push('Debe agregar al menos un cliente');
+        if (this.pedidos.length === 0) {
+            errores.push('Debe agregar al menos un pedido/producto');
         }
 
-        let tieneProductos = false;
-        this.clientes.forEach(cliente => {
-            if (cliente.productos.length > 0) {
-                tieneProductos = true;
-            }
-        });
-
-        if (!tieneProductos) {
-            errores.push('Debe agregar productos a los clientes');
+        const volumenTotal = this.calcularVolumenTotal();
+        if (volumenTotal > this.capacidadCamion) {
+            errores.push(`El volumen total (${volumenTotal.toFixed(2)} m³) excede la capacidad del camión (${this.capacidadCamion} m³)`);
         }
 
         return {
             valido: errores.length === 0,
-            errores: errores
+            errores
         };
     }
 
     /**
-     * Obtiene datos resumidos del despacho
+     * Obtiene todos los pedidos
+     */
+    obtenerPedidos() {
+        return this.pedidos;
+    }
+
+    /**
+     * Obtiene resumen del despacho
      */
     obtenerResumen() {
         return {
+            ruta: this.ruta,
+            fecha: this.fecha,
+            tipoCamion: this.tipoCamionSeleccionado,
+            capacidadCamion: this.capacidadCamion,
+            cantidadPedidos: this.pedidos.length,
             volumenTotal: this.calcularVolumenTotal(),
             pesoTotal: this.calcularPesoTotal(),
             valorTotal: this.calcularValorTotal(),
-            numeroClientes: this.clientes.length,
-            numeroProductos: this.clientes.reduce((sum, c) => sum + c.productos.length, 0)
+            porcentajeOcupacion: this.obtenerPorcentajeOcupacion(),
+            observaciones: this.observaciones
         };
     }
+}
+
+// Exportar para uso como módulo
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = DespachoModel;
 }

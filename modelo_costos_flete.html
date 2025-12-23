@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo de Cálculo de Costos de Flete</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 12px #0001; padding: 32px; }
+        h1 { color: #1e293b; }
+        label { display: block; margin-top: 16px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #cbd5e1; }
+        button { margin-top: 24px; padding: 10px 24px; background: #2563eb; color: #fff; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+        button:hover { background: #1e40af; }
+        .result { background: #f1f5f9; border-radius: 6px; padding: 18px; margin-top: 24px; }
+        .flex { display: flex; gap: 12px; }
+        .flex > div { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+        th, td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; }
+        th { background: #e0e7ef; }
+        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+        header h1 { margin: 0; color: #1e293b; }
+        header button { background: #64748b; color: #fff; padding: 8px 18px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Modelo Simple de Cálculo de Costos de Flete</h1>
+        <button onclick="window.location.href='index.html'">⬅ Volver a principal</button>
+    </header>
+    <form id="fleteForm">
+        <label>Distancia total de la ruta (km):
+            <input type="number" id="distanciaRuta" value="100" min="1" required>
+        </label>
+        <label>Tarifa total del flete ($):
+            <input type="number" id="tarifaFlete" value="1000000" min="1" required>
+        </label>
+        <label>Pedidos (JSON):
+            <textarea id="pedidos" rows="7" required>[
+  { "cliente": "Cliente A", "destino": 40, "peso": 500, "volumen": 10 },
+  { "cliente": "Cliente B", "destino": 70, "peso": 300, "volumen": 7 },
+  { "cliente": "Cliente C", "destino": 100, "peso": 200, "volumen": 5 }
+]</textarea>
+        </label>
+        <button type="submit">Calcular Costos</button>
+    </form>
+    <div id="resultado" class="result" style="display:none;"></div>
+</div>
+<script>
+function calcularCostos(distanciaRuta, tarifaFlete, pedidos) {
+    // Suma total de peso y volumen
+    let totalPeso = 0, totalVolumen = 0;
+    pedidos.forEach(p => {
+        totalPeso += p.peso;
+        totalVolumen += p.volumen;
+    });
+    // Calcular para cada cliente
+    return pedidos.map(p => {
+        // Proporción de distancia recorrida
+        const propDist = p.destino / distanciaRuta;
+        // Proporción de peso y volumen
+        const propPeso = p.peso / totalPeso;
+        const propVol = p.volumen / totalVolumen;
+        // Cálculo mixto: 50% distancia, 25% peso, 25% volumen
+        const factor = 0.5 * propDist + 0.25 * propPeso + 0.25 * propVol;
+        const costo = Math.round(factor * tarifaFlete);
+        return { ...p, factor: factor.toFixed(3), costo };
+    });
+}
+
+document.getElementById('fleteForm').onsubmit = function(e) {
+    e.preventDefault();
+    const distanciaRuta = parseFloat(document.getElementById('distanciaRuta').value);
+    const tarifaFlete = parseFloat(document.getElementById('tarifaFlete').value);
+    let pedidos;
+    try {
+        pedidos = JSON.parse(document.getElementById('pedidos').value);
+    } catch {
+        alert('El formato de pedidos no es válido.');
+        return;
+    }
+    const resultados = calcularCostos(distanciaRuta, tarifaFlete, pedidos);
+    let html = '<table><tr><th>Cliente</th><th>Destino (km)</th><th>Peso (kg)</th><th>Volumen (m³)</th><th>Factor</th><th>Costo Flete ($)</th></tr>';
+    resultados.forEach(r => {
+        html += `<tr><td>${r.cliente}</td><td>${r.destino}</td><td>${r.peso}</td><td>${r.volumen}</td><td>${r.factor}</td><td>${r.costo.toLocaleString()}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('resultado').innerHTML = html;
+    document.getElementById('resultado').style.display = 'block';
+};
+</script>
+</body>
+</html>

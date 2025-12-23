@@ -107,16 +107,25 @@ class MigrationManager {
      * Obtiene la versión actual de la BD
      */
     async getCurrentVersion() {
-        // Implementación depende del tipo de BD (IndexedDB vs SQL)
-        return this.db.getVersion ? await this.db.getVersion() : 0;
+        try {
+            return this.db.getVersion ? await this.db.getVersion() : 0;
+        } catch (error) {
+            console.warn('⚠️ No se pudo obtener versión, asumiendo 0:', error.message);
+            return 0;
+        }
     }
 
     /**
      * Establece la versión de la BD
      */
     async setVersion(version) {
-        if (this.db.setVersion) {
-            await this.db.setVersion(version);
+        try {
+            if (this.db.setVersion) {
+                await this.db.setVersion(version);
+            }
+        } catch (error) {
+            console.error('❌ Error al guardar versión:', error);
+            throw error;
         }
     }
 

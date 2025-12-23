@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicializar Base de Datos - GE Logística</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .status-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .status-value {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+        }
+
+        .log-container {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-success { color: #86efac; }
+        .log-error { color: #fca5a5; }
+        .log-warning { color: #fcd34d; }
+        .log-info { color: #7dd3fc; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Inicialización de Base de Datos</h1>
+        <p class="subtitle">Sistema de Migraciones - GE Logística</p>
+
+        <div class="alert alert-info">
+            <strong>⚠️ Importante:</strong> Este proceso creará la base de datos local (IndexedDB) y cargará las 56 rutas con tarifas 2025.
+        </div>
+
+        <div class="status-box">
+            <h3 style="margin-bottom: 15px; color: #1e293b;">Estado del Sistema</h3>
+            <div class="status-item">
+                <span class="status-label">Base de Datos:</span>
+                <span class="status-value" id="dbStatus">No inicializada</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Versión:</span>
+                <span class="status-value" id="dbVersion">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Rutas cargadas:</span>
+                <span class="status-value" id="rutasCount">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Migraciones pendientes:</span>
+                <span class="status-value" id="migrationsPending">Verificando...</span>
+            </div>
+        </div>
+
+        <button class="btn" onclick="ejecutarMigraciones()" id="btnMigrate">
+            🚀 Ejecutar Migraciones
+        </button>
+
+        <button class="btn btn-secondary" onclick="verificarEstado()">
+            🔍 Verificar Estado
+        </button>
+
+        <button class="btn btn-secondary" onclick="irAplicacion()" style="background: #22c55e;">
+            ✅ Ir a la Aplicación
+        </button>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry log-info">📋 Sistema listo. Presiona "Ejecutar Migraciones" para inicializar la BD.</div>
+        </div>
+    </div>
+
+    <!-- Configuración -->
+    <script src="config/database.js"></script>
+
+    <!-- Sistema de BD -->
+    <script src="database/DatabaseAdapter.js"></script>
+    <script src="database/MigrationManager.js"></script>
+
+    <!-- Migraciones -->
+    <script src="database/migrations/001_create_rutas_table.js"></script>
+    <script src="database/migrations/002_create_camiones_table.js"></script>
+    <script src="database/migrations/003_create_despachos_table.js"></script>
+    <script src="database/migrations/004_create_clientes_table.js"></script>
+    <script src="database/migrations/005_create_productos_table.js"></script>
+
+    <script>
+        let db = null;
+        let migrationManager = null;
+
+        // Funciones de logging
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Verificar estado de la BD
+        async function verificarEstado() {
+            log('🔍 Verificando estado de la base de datos...', 'info');
+            
+            try {
+                const dbConfig = DatabaseConfig.local;
+                const adapter = new DatabaseAdapter(dbConfig);
+                await adapter.connect();
+
+                const version = await adapter.getVersion() || 0;
+                
+                let rutas = [];
+                try {
+                    rutas = await adapter.getAll('rutas');
+                } catch (e) {
+                    log('⚠️ Tabla rutas aún no creada', 'warning');
+                }
+
+                document.getElementById('dbStatus').textContent = rutas.length > 0 ? '✅ Inicializada' : '⚠️ Sin datos';
+                document.getElementById('dbVersion').textContent = version;
+                document.getElementById('rutasCount').textContent = rutas.length;
+                document.getElementById('migrationsPending').textContent = version >= 5 ? 'Ninguna' : `${5 - version} pendientes`;
+
+                log(`✅ BD versión ${version} con ${rutas.length} rutas`, 'success');
+                
+                return { version, rutas: rutas.length };
+
+            } catch (error) {
+                log(`⚠️ BD no inicializada: ${error.message}`, 'warning');
+                document.getElementById('dbStatus').textContent = '⚠️ No inicializada';
+                document.getElementById('migrationsPending').textContent = '5 pendientes';
+                return { version: 0, rutas: 0 };
+            }
+        }
+
+        // Ejecutar migraciones
+        async function ejecutarMigraciones() {
+            const btn = document.getElementById('btnMigrate');
+            btn.disabled = true;
+            btn.textContent = '⏳ Ejecutando...';
+
+            log('🚀 Iniciando proceso de migraciones...', 'info');
+
+            try {
+                // 1. Conectar a BD
+                log('📡 Conectando a IndexedDB...', 'info');
+                const dbConfig = DatabaseConfig.local;
+                db = new DatabaseAdapter(dbConfig);
+                await db.connect();
+                log('✅ Conexión establecida', 'success');
+
+                // 2. Crear MigrationManager
+                migrationManager = new MigrationManager(db);
+
+                // 3. Registrar migraciones
+                log('📦 Registrando migraciones...', 'info');
+                
+                if (typeof migration_001 !== 'undefined') migrationManager.register(migration_001);
+                if (typeof migration_002 !== 'undefined') migrationManager.register(migration_002);
+                if (typeof migration_003 !== 'undefined') migrationManager.register(migration_003);
+                if (typeof migration_004 !== 'undefined') migrationManager.register(migration_004);
+                if (typeof migration_005 !== 'undefined') migrationManager.register(migration_005);
+
+                log('✅ 5 migraciones registradas', 'success');
+
+                // 4. Ejecutar migraciones
+                log('⚙️ Ejecutando migraciones...', 'info');
+                const result = await migrationManager.migrate();
+
+                if (result.executed > 0) {
+                    log(`✅ ${result.executed} migraciones ejecutadas correctamente`, 'success');
+                } else {
+                    log('ℹ️ Base de datos ya está actualizada', 'info');
+                }
+
+                // 5. Verificar estado
+                await verificarEstado();
+
+                log('🎉 ¡Proceso completado exitosamente!', 'success');
+                btn.textContent = '✅ Completado';
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+                btn.textContent = '❌ Error - Reintentar';
+                btn.disabled = false;
+            }
+        }
+
+        // Ir a la aplicación
+        function irAplicacion() {
+            window.location.href = 'index.html';
+        }
+
+        // Verificar al cargar
+        window.addEventListener('load', verificarEstado);
+    </script>
+</body>
+</html>

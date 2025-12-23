@@ -3,9 +3,16 @@
 ## 📋 Estado Actual
 
 ✅ **Infraestructura completa implementada**  
-📋 **Diseño de esquema pendiente de análisis**  
-⏳ **Migraciones: 0 creadas (esperando diseño)**  
-🌱 **Seeders: Infraestructura lista**
+✅ **Diseño de esquema finalizado** (Opción 1 - Tabla simple)  
+✅ **Migraciones creadas**: 5 archivos listos  
+⏳ **Pendiente**: Ejecutar migraciones y probar  
+
+### Archivos creados:
+- `database/migrations/001_create_rutas_table.js` (57 rutas + tarifas 2025)
+- `database/migrations/002_create_camiones_table.js` (3 tipos)
+- `database/migrations/003_create_despachos_table.js`
+- `database/migrations/004_create_clientes_table.js`
+- `database/migrations/005_create_productos_table.js`
 
 ---
 
@@ -137,11 +144,44 @@ database/
 
 ---
 
-## 📐 Diseño de Esquema Propuesto
+## 📐 Diseño de Esquema Implementado
 
-### Tablas Principales (Sugeridas)
+### Estructura Final (Opción 1 - Tabla Simple)
 
-#### 1. **rutas**
+Se implementó la estructura simple con tarifas integradas en la tabla rutas para máxima eficiencia.
+
+#### 1. **rutas** (57 registros - Tarifas 2025)
+```sql
+CREATE TABLE rutas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(20) UNIQUE NOT NULL,     -- 'RUTA 01', 'RUTA 02', etc.
+    nombre VARCHAR(255) NOT NULL,           -- Descripción de la ruta
+    tarifa_25m3 DECIMAL(10,3) NOT NULL,     -- Precio para camión 25m³
+    tarifa_37m3 DECIMAL(10,3) NOT NULL,     -- Precio para camión 37m³
+    tarifa_45m3 DECIMAL(10,3) NOT NULL,     -- Precio para camión 45m³
+    activa BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
+    
+    INDEX idx_codigo (codigo),
+    INDEX idx_activa (activa)
+);
+```
+
+**Ejemplo de datos**:
+```javascript
+{
+    id: 1,
+    codigo: 'RUTA 01',
+    nombre: 'URBANO (SIBATE a Calle 26) (1 a 6 Clientes)',
+    tarifa_25m3: 272.967,
+    tarifa_37m3: 318.462,
+    tarifa_45m3: 333.626,
+    activa: true
+}
+```
+
+#### 2. **camiones** (3 registros)
 ```sql
 CREATE TABLE rutas (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -153,54 +193,19 @@ CREATE TABLE rutas (
 );
 ```
 
-#### 2. **destinos**
-```sql
-CREATE TABLE destinos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ruta_id INT NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
-    distancia INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (ruta_id) REFERENCES rutas(id) ON DELETE CASCADE,
-    INDEX idx_ruta_id (ruta_id)
-);
-```
-
-#### 3. **camiones**
+#### 2. **camiones** (3 registros)
 ```sql
 CREATE TABLE camiones (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tipo VARCHAR(50) NOT NULL,
-    capacidad INT NOT NULL,
-    eficiencia DECIMAL(3,2) DEFAULT 0.80,
+    tipo VARCHAR(50) UNIQUE NOT NULL,       -- '25m³', '37m³', '45m³'
+    capacidad INT NOT NULL,                 -- 25, 37, 45
+    eficiencia DECIMAL(3,2) DEFAULT 0.80,   -- 80% eficiencia
     activo BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-#### 4. **tarifas**
-```sql
-CREATE TABLE tarifas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ruta_id INT NOT NULL,
-    destino_id INT NOT NULL,
-    camion_id INT NOT NULL,
-    tarifa DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (ruta_id) REFERENCES rutas(id),
-    FOREIGN KEY (destino_id) REFERENCES destinos(id),
-    FOREIGN KEY (camion_id) REFERENCES camiones(id),
-    
-    UNIQUE KEY uk_tarifa (ruta_id, destino_id, camion_id),
-    INDEX idx_ruta (ruta_id),
-    INDEX idx_destino (destino_id),
-    INDEX idx_camion (camion_id)
-);
-```
-
-#### 5. **despachos**
+#### 3. **despachos**
 ```sql
 CREATE TABLE despachos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -218,21 +223,21 @@ CREATE TABLE despachos (
 );
 ```
 
-#### 6. **clientes**
+#### 4. **clientes**
 ```sql
 CREATE TABLE clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     despacho_id INT NOT NULL,
     nombre VARCHAR(255) NOT NULL,
     ciudad VARCHAR(100),
+    volumen_total DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (despacho_id) REFERENCES despachos(id) ON DELETE CASCADE,
-    INDEX idx_despacho (despacho_id)
+    FOREIGN KEY (despacho_id) REFERENCES despachos(id) ON DELETE CASCADE
 );
 ```
 
-#### 7. **productos**
+#### 5. **productos**
 ```sql
 CREATE TABLE productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -242,205 +247,103 @@ CREATE TABLE productos (
     volumen DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
-    INDEX idx_cliente (cliente_id)
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 ```
 
 ---
 
-## 🔗 Diagrama de Relaciones
+## 🔗 Diagrama de Relaciones Implementado
 
 ```
-rutas (1) ────< (N) destinos
-  │
-  ├────< (N) tarifas
-  │
-  └────< (N) despachos (1) ────< (N) clientes (1) ────< (N) productos
-
-camiones (1) ────< (N) tarifas
-         │
-         └────< (N) despachos
+rutas (57) ──────┐
+  tarifa_25m3    │
+  tarifa_37m3    │
+  tarifa_45m3    │
+                 │
+camiones (3) ────┤
+                 │
+                 ├──< despachos (1:N)
+                 │      │
+                 │      ├──< clientes (1:N)
+                 │      │      │
+                 │      │      └──< productos (1:N)
+                 │      │
+                 └──────┘
 ```
 
-**Cardinalidades**:
-- Una ruta tiene muchos destinos (1:N)
-- Una ruta tiene muchas tarifas (1:N)
-- Un destino tiene muchas tarifas (1:N)
-- Un camión tiene muchas tarifas (1:N)
-- Un despacho tiene muchos clientes (1:N)
-- Un cliente tiene muchos productos (1:N)
+**Ventajas de esta estructura**:
+- ✅ Tarifas directamente en tabla rutas (sin joins)
+- ✅ Consultas más rápidas
+- ✅ Refleja exactamente las tarifas 2025
+- ✅ Simple y eficiente
 
 ---
 
-## 🚀 Cómo Usar el Sistema
+## 📦 Migraciones Implementadas
 
-### Paso 1: Inicializar Base de Datos
+Se crearon 5 migraciones listas para ejecutar:
+
+1. **001_create_rutas_table.js** - 57 rutas con tarifas 2025
+2. **002_create_camiones_table.js** - 3 tipos de camiones
+3. **003_create_despachos_table.js** - Tabla de despachos
+4. **004_create_clientes_table.js** - Tabla de clientes
+5. **005_create_productos_table.js** - Tabla de productos
+
+---
+
+## 🚀 Cómo Ejecutar las Migraciones
+
+### Paso 1: Inicializar BD
 
 ```javascript
-// En consola del navegador o en app.js
+// En consola del navegador o app.js
+import { DatabaseAdapter } from './database/DatabaseAdapter.js';
+import { MigrationManager } from './database/MigrationManager.js';
+import { DatabaseConfig } from './config/database.js';
+
 const config = DatabaseConfig.local;
 const db = new DatabaseAdapter(config);
 await db.connect();
-
-console.log('✓ BD conectada');
 ```
 
-### Paso 2: Crear el Gestor de Migraciones
+### Paso 2: Registrar Migraciones
 
 ```javascript
+import { Migration_001_CreateRutasTable } from './database/migrations/001_create_rutas_table.js';
+import { Migration_002_CreateCamionesTable } from './database/migrations/002_create_camiones_table.js';
+import { Migration_003_CreateDespachosTable } from './database/migrations/003_create_despachos_table.js';
+import { Migration_004_CreateClientesTable } from './database/migrations/004_create_clientes_table.js';
+import { Migration_005_CreateProductosTable } from './database/migrations/005_create_productos_table.js';
+
 const migrationManager = new MigrationManager(db);
-```
 
-### Paso 3: Crear y Registrar Migraciones
-
-Crear archivo: `database/migrations/001_create_rutas_table.js`
-
-```javascript
-const Migration_001_CreateRutasTable = {
-    version: 1,
-    name: 'CreateRutasTable',
-    description: 'Crea la tabla de rutas',
-    
-    async up(db) {
-        console.log('📦 Creando tabla rutas...');
-        // Tu código aquí
-    },
-    
-    async down(db) {
-        console.log('🔙 Eliminando tabla rutas...');
-        // Tu código aquí
-    }
-};
-
-// Registrar
 migrationManager.register(Migration_001_CreateRutasTable);
+migrationManager.register(Migration_002_CreateCamionesTable);
+migrationManager.register(Migration_003_CreateDespachosTable);
+migrationManager.register(Migration_004_CreateClientesTable);
+migrationManager.register(Migration_005_CreateProductosTable);
 ```
 
-### Paso 4: Ejecutar Migraciones
+### Paso 3: Ejecutar
 
 ```javascript
 // Ver estado
 await migrationManager.status();
 
-// Ejecutar pendientes
+// Ejecutar todas
 await migrationManager.migrate();
 
-// Si algo sale mal, revertir
-await migrationManager.rollback();
+// Verificar datos
+const rutas = await db.findAll('rutas');
+console.log(`✓ ${rutas.length} rutas cargadas`);
 ```
 
 ---
 
-## 📝 Ejemplos de Migraciones
+## 💡 Uso en los Modelos
 
-### Ejemplo 1: Crear Tabla
-```javascript
-async up(db) {
-    const rutasIniciales = [
-        { id: 1, nombre: 'Bogotá - Medellín', activa: true },
-        { id: 2, nombre: 'Bogotá - Cali', activa: true }
-    ];
-    
-    for (const ruta of rutasIniciales) {
-        await db.insert('rutas', ruta);
-    }
-}
-```
-
-### Ejemplo 2: Agregar Campo
-```javascript
-async up(db) {
-    const rutas = await db.findAll('rutas');
-    for (const ruta of rutas) {
-        ruta.descripcion = null; // Nuevo campo
-        await db.update('rutas', ruta);
-    }
-}
-```
-
-### Ejemplo 3: Crear Relación
-```javascript
-async up(db) {
-    const destinos = [
-        { id: 1, rutaId: 1, nombre: 'Medellín', distancia: 415 },
-        { id: 2, rutaId: 1, nombre: 'Envigado', distancia: 425 }
-    ];
-    
-    for (const destino of destinos) {
-        await db.insert('destinos', destino);
-    }
-}
-```
-
----
-
-## 🌱 Seeders (Datos Iniciales)
-
-Crear archivo: `database/seeders/001_seed_rutas.js`
-
-```javascript
-const Seeder_RutasIniciales = {
-    name: 'RutasIniciales',
-    description: 'Rutas principales del sistema',
-    table: 'rutas',
-    
-    async run(db) {
-        console.log('🌱 Insertando rutas...');
-        
-        const rutas = [
-            { id: 1, nombre: 'Bogotá - Medellín', activa: true },
-            { id: 2, nombre: 'Bogotá - Cali', activa: true },
-            { id: 3, nombre: 'Bogotá - Barranquilla', activa: true },
-            { id: 4, nombre: 'Bogotá - Cartagena', activa: true },
-            { id: 5, nombre: 'Bogotá - Bucaramanga', activa: true }
-        ];
-        
-        for (const ruta of rutas) {
-            await db.insert(this.table, ruta);
-        }
-        
-        console.log(`✓ ${rutas.length} rutas insertadas`);
-    },
-    
-    async clear(db) {
-        await db.clear(this.table);
-    }
-};
-```
-
----
-
-## ✅ Buenas Prácticas
-
-### Nomenclatura de Migraciones
-```
-✅ 001_create_rutas_table.js
-✅ 002_create_destinos_table.js
-✅ 003_add_descripcion_to_rutas.js
-
-❌ migracion1.js
-❌ nueva_tabla.js
-```
-
-### Orden de Creación
-1. **Tablas principales** (sin FK): rutas, camiones
-2. **Tablas dependientes** (con FK): destinos, tarifas
-3. **Tablas transaccionales**: despachos, clientes, productos
-
-### Reversibilidad
-```javascript
-// Siempre incluir down() para revertir
-async down(db) {
-    await db.clear('tabla');
-}
-```
-
----
-
-## 🔄 Integración con Modelos MVC
-
-Una vez creadas las migraciones, integrar con los modelos:
+### RutaModel actualizado
 
 ```javascript
 // models/RutaModel.js
@@ -449,16 +352,32 @@ class RutaModel {
         this.db = db; // DatabaseAdapter
     }
     
+    async obtenerTarifa(rutaId, tipoCamion) {
+        const ruta = await this.db.find('rutas', rutaId);
+        
+        switch(tipoCamion) {
+            case '25m³': return ruta.tarifa_25m3;
+            case '37m³': return ruta.tarifa_37m3;
+            case '45m³': return ruta.tarifa_45m3;
+        }
+    }
+    
     async obtenerRutas() {
         return await this.db.findAll('rutas');
     }
-    
-    async obtenerRutaPorId(id) {
-        return await this.db.find('rutas', id);
+}
+```
+
+### CamionModel actualizado
+
+```javascript
+class CamionModel {
+    constructor(db) {
+        this.db = db;
     }
     
-    async obtenerDestinosPorRuta(rutaId) {
-        return await this.db.findBy('destinos', 'rutaId', rutaId);
+    async obtenerCamiones() {
+        return await this.db.findAll('camiones');
     }
 }
 ```
