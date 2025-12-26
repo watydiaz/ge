@@ -20,6 +20,7 @@
                     <p>Dimensión Operativa (Volumen × Distancia) + Dimensión Financiera (Peso × Costos)</p>
                 </div>
                 <a href="modelo_costos_flete.html" style="margin-left:16px;background:#2563eb;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Modelo de Costos</a>
+                <a href="modelo_tabla_flete.html" style="margin-left:16px;background:#059669;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Tabla Flete Volumen</a>
             </div>
         </header>
 
@@ -191,38 +192,30 @@
         <!-- Módulo 3: Resumen y Cálculo del Despacho -->
         <section class="card">
             <h2>Resumen del Despacho</h2>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <label>Volumen Total:</label>
-                    <span id="volumenTotal">0.00 m³</span>
+            <div class="summary-section">
+                <h3>Indicadores Operativos</h3>
+                <div class="summary-grid">
+                    <div class="summary-item"><span id="indicadorOcupacion">Ocupación del camión (%)</span></div>
+                    <div class="summary-item"><span id="indicadorDesperdicio">Capacidad desperdiciada (%)</span></div>
+                    <div class="summary-item"><span id="indicadorVolumen">Volumen transportado (m³)</span></div>
+                    <div class="summary-item"><span id="indicadorTipoCamion">Tipo de camión utilizado</span></div>
+                    <div class="summary-item"><span id="indicadorNumClientes">Número de clientes por despacho</span></div>
                 </div>
-                <div class="summary-item">
-                    <label>Tipo de Camión:</label>
-                    <span id="tipoCamion">-</span>
-                </div>
-                <div class="summary-item">
-                    <label>Ocupación Real:</label>
-                    <span id="ocupacionReal">-</span>
-                </div>
-                <div class="summary-item">
-                    <label>Flete Total:</label>
-                    <span id="fleteTotal">$ 0</span>
-                </div>
-                <div class="summary-item">
-                    <label>Valor Total Productos:</label>
-                    <span id="valorTotalProductos">$ 0</span>
+                <h3 style="margin-top:24px;">Indicadores Económicos / Financieros</h3>
+                <div class="summary-grid">
+                    <div class="summary-item"><span id="indicadorFleteVenta">% Flete sobre venta</span></div>
+                    <div class="summary-item"><span id="indicadorFleteCliente">Costo del flete por cliente</span></div>
+                    <div class="summary-item"><span id="indicadorFleteProducto">Costo del flete por producto</span></div>
+                    <div class="summary-item"><span id="indicadorVentaSinIVA">Valor total de venta sin IVA</span></div>
+                    <div class="summary-item"><span id="indicadorCostoProductos">Costo total de productos</span></div>
                 </div>
             </div>
-
             <!-- Detalle por Cliente -->
             <div id="detalleClientes" style="margin-top: 20px;">
-                <h3 style="color: #1a3a52; margin-bottom: 12px; font-size: 1em; font-weight: 600;">Detalle por Cliente
-                </h3>
+                <h3 style="color: #1a3a52; margin-bottom: 12px; font-size: 1em; font-weight: 600;">Detalle por Cliente</h3>
                 <div id="detalleClientesContainer"></div>
             </div>
-
-            <button onclick="calcularDespacho()" class="btn-primary" style="margin-top: 15px;">Calcular
-                Despacho</button>
+            <button onclick="calcularDespacho()" class="btn-primary" style="margin-top: 15px;">Calcular Despacho</button>
         </section>
 
         <!-- Módulo 4: Reporte Final Detallado -->
@@ -313,6 +306,8 @@
                     <th>Vol. Unitario (m³)</th>
                     <th>Vol. Total (m³)</th>
                     <th>Ocupación Volumétrica (%)</th>
+                    <th>Valor m³ (Flete/Camión)</th>
+                    <th>Valor Flete Producto</th>
                 </tr>
             </thead>
             <tbody>
@@ -329,6 +324,8 @@
                     <td>0.53</td>
                     <td>3.18</td>
                     <td>12.72%</td>
+                    <td>38.826,36</td>
+                    <td>123.947,76</td>
                 </tr>
             </tbody>
         </table>
