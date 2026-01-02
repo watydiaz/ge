@@ -59,10 +59,9 @@ class ConfiguracionViajeView {
      * Renderiza el select de destinos
      */
     renderizarDestinos(destinos) {
+        if (!this.selectDestinoCliente) return;
         this.selectDestinoCliente.innerHTML = '<option value="">-- Seleccione destino --</option>';
-        
         if (!destinos || destinos.length === 0) return;
-
         destinos.forEach(destino => {
             const option = document.createElement('option');
             option.value = JSON.stringify(destino);

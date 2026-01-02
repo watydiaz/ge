@@ -7,8 +7,201 @@
     <title>GE Logística - Sistema de Cotización de Fletes (MVC)</title>
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f1f5f9;
+        color: #1e293b;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 12px 48px 12px;
+    }
+    .card {
+        background: rgba(251, 146, 60, 0.13); /* naranja translúcido */
+        border-radius: 14px;
+        box-shadow: 0 2px 12px #0001;
+        padding: 32px 24px 28px 24px;
+        margin-bottom: 32px;
+        border: 1px solid #fb923c33;
+        transition: box-shadow 0.2s;
+    }
+    .card h2 {
+        color: #1e40af;
+        margin-top: 0;
+        margin-bottom: 18px;
+        font-size: 1.35em;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+    }
+    .form-group label {
+        font-weight: 500;
+        color: #1e293b;
+        margin-bottom: 4px;
+        display: block;
+    }
+    input, select, textarea {
+        border: 1.5px solid #fb923c !important;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-size: 1em;
+        width: 100%;
+        background: #fff;
+        margin-bottom: 0;
+        box-sizing: border-box;
+        transition: border 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none !important;
+        border-color: #ea580c !important;
+        box-shadow: 0 0 0 2px #fb923c44;
+        background: #fff7ed;
+    }
+    button, .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 18px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        background: #2563eb;
+        color: #fff;
+        transition: background 0.2s, box-shadow 0.2s;
+        margin-right: 6px;
+    }
+    button.btn-secondary, .btn-secondary {
+        background: #64748b;
+        color: #fff;
+    }
+    button.btn-danger, .btn-danger {
+        background: #ef4444;
+        color: #fff;
+    }
+    button.btn-warning, .btn-warning {
+        background: #facc15;
+        color: #1e293b;
+    }
+    button:active, button:focus {
+        box-shadow: 0 0 0 2px #2563eb44;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+    th, td {
+        padding: 10px 8px;
+        border: 1px solid #e2e8f0;
+        text-align: left;
+        font-size: 0.98em;
+    }
+    th {
+        background: #2563eb;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+    tr:nth-child(even) td {
+        background: #f1f5fa;
+    }
+    .alert {
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 1em;
+        margin-bottom: 12px;
+    }
+    .alert-warning {
+        background: #fef9c3;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+    .acordeon-pedidos .acordeon-item {
+        background: rgba(251,146,60,0.09);
+        border: 1px solid #fb923c33;
+    }
+    @media (max-width: 900px) {
+        .container { padding: 8px; }
+        .card { padding: 18px 6px; }
+        table, th, td { font-size: 0.95em; }
+        .modal-dialog { min-width: 90vw; }
+    }
+</style>
+<style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(30,41,59,0.45);
+        z-index: 1000;
+        display: none;
+    }
+    .modal.show, .modal-backdrop.show { display: block !important; }
+    .modal {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        display: none;
+        z-index: 1010;
+        align-items: center;
+        justify-content: center;
+        background: none;
+    }
+    .modal-dialog {
+        margin: auto;
+        min-width: 420px;
+        max-width: 700px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px #0003;
+        position: relative;
+    }
+    .modal-header, .modal-footer { padding: 16px; }
+    .modal-title { font-size: 1.1em; font-weight: bold; }
+    .modal-body { padding: 16px; }
+    .btn-close { background: none; border: none; font-size: 1.3em; cursor: pointer; position: absolute; right: 16px; top: 16px; }
+
+        .config-viaje-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 18px 24px;
+        align-items: end;
+    }
+    .config-viaje-grid .observacion-group {
+        grid-column: 2 / 3;
+        width: 100%;
+        margin-top: 10px;
+        justify-self: center;
+    }
+    @media (max-width: 900px) {
+        .config-viaje-grid {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto auto;
+            gap: 10px;
+        }
+        .config-viaje-grid .observacion-group {
+            grid-column: 1;
+            width: 100%;
+        }
+    }
+    @media (max-width: 900px) {
+        .config-viaje-grid {
+            grid-template-columns: 1fr;
+            grid-gap: 10px;
+        }
+        .config-viaje-grid .observacion-group {
+            width: 100%;
+            grid-column: 1;
+        }
+    }
+</style>
 
 <body>
+        <div id="toastMsg" style="display:none;position:fixed;top:32px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;z-index:9999;font-size:1.08em;box-shadow:0 2px 12px #0002;transition:opacity 0.3s;opacity:0;">Primero debes diligenciar la Configuración del Viaje.</div>
     <div class="container">
         <header>
             <div class="header-content">
@@ -16,8 +209,8 @@
                     <img src="https://www.gelogistica.co/wp-content/uploads/2025/05/pagina-logo.png" alt="GE Logística">
                 </div>
                 <div class="header-text">
-                    <h1>Sistema de Cálculo de Fletes - Modelo Mixto</h1>
-                    <p>Dimensión Operativa (Volumen × Distancia) + Dimensión Financiera (Peso × Costos)</p>
+                    <h1>Sistema de Cálculo de Fletes - Modelo </h1>
+                    <p>Dimensión Operativa (Volumen)</p>
                 </div>
                 <a href="modelo_costos_flete.html" style="margin-left:16px;background:#2563eb;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Modelo de Costos</a>
                 <a href="modelo_tabla_flete.html" style="margin-left:16px;background:#059669;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Tabla Flete Volumen</a>
@@ -27,166 +220,605 @@
         <!-- Módulo 1: Configuración del Viaje -->
         <section class="card">
             <h2>Configuración del Viaje</h2>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <!-- Ruta -->
-                <div>
+            <form id="configuracion-viaje-form">
+                <div class="config-viaje-grid">
+                    <!-- Fila 1: 3 columnas -->
                     <div class="form-group">
                         <label for="ruta">Ruta de Transporte:</label>
-                        <select id="ruta" onchange="cargarRuta()">
-                            <option value="">-- Seleccione una ruta --</option>
+                        <select id="ruta" onchange="cargarRuta();renderOcupacionVisual();">
+                            <!-- Opciones generadas dinámicamente por JS -->
                         </select>
                     </div>
-                    <div id="infoRuta" class="info-box" style="display:none;">
-                        <p><strong>Destinos disponibles:</strong> <span id="destinos"></span></p>
-                        <p><strong>Distancia:</strong> <span id="distancia"></span> km</p>
-                    </div>
-                </div>
-
-                <!-- Camión -->
-                <div>
                     <div class="form-group">
                         <label for="tipoCamionSeleccionado">Tipo de Camión:</label>
-                        <select id="tipoCamionSeleccionado" onchange="validarCapacidadCamion()">
-                            <option value="">-- Seleccione tipo de camión --</option>
-                            <option value="25">Camión 25 m³</option>
-                            <option value="37">Camión 37 m³</option>
-                            <option value="45">Camión 45 m³</option>
+                        <select id="tipoCamionSeleccionado" onchange="validarCapacidadCamion();renderOcupacionVisual();">
+                            <!-- Opciones generadas dinámicamente por JS -->
                         </select>
-                        <small style="color: #64748b; margin-top: 5px; display: block;">Seleccione el camión antes de
-                            agregar clientes</small>
                     </div>
+                    <div class="form-group">
+                        <label for="fechaDespacho">Fecha de Despacho:</label>
+                        <input type="date" id="fechaDespacho">
+                    </div>
+                    <!-- Fila 2: Info de ruta centrada -->
+                    <div></div>
+                    <div style="grid-column: 2 / 3; width: 100%; margin-top: 10px; justify-self: center; text-align:center;">
+                        <div id="infoRuta" class="info-box" style="display:none;">
+                            <p style="margin:0 0 4px 0;"><strong>Destinos disponibles:</strong> <span id="destinos"></span></p>
+                            <p style="margin:0;"><strong>Distancia:</strong> <span id="distancia"></span> km</p>
+                        </div>
+                    </div>
+                    <div></div>
                 </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-                <div class="form-group">
-                    <label for="fechaDespacho">Fecha de Despacho:</label>
-                    <input type="date" id="fechaDespacho">
-                </div>
-                <div class="form-group">
-                    <label for="observaciones">Observaciones:</label>
-                    <input type="text" id="observaciones" placeholder="Notas adicionales del despacho">
-                </div>
-            </div>
-
-            <!-- Agregar Destino -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                <strong style="color: var(--text-dark); font-size: 0.9em; display: block; margin-bottom: 10px;">Agregar
-                    Nuevo Destino a la Ruta</strong>
-                <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px;">
-                    <input type="text" id="nuevoDestino" placeholder="Nombre del destino" class="form-control">
-                    <input type="number" id="nuevoDestinoKm" placeholder="Kilómetros" min="1" class="form-control">
-                    <button onclick="agregarDestinoARuta()" class="btn-secondary">Agregar Destino</button>
-                </div>
-            </div>
+            </form>
         </section>
 
+<script>
+// Definir tipos de camión para el select
+const TIPOS_CAMION = [
+    "Camión 25 m³",
+    "Camión 37 m³",
+    "Camión 45 m³"
+];
+// --- DATOS HARDCODEADOS DE RUTAS Y TARIFAS ---
+// ...existing code...
+
+// Autocompletar selects de ruta y tipo de camión al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Rellenar select de rutas
+    const rutaSelect = document.getElementById('ruta');
+        if (rutaSelect) {
+            rutaSelect.innerHTML = '<option value="">-- Seleccione una ruta --</option>' +
+                RUTAS.map((destino, i) => `<option value="${i}">RUTA ${String(i+1).padStart(2,'0')} - ${destino}</option>`).join('');
+        }
+    // Rellenar select de tipo de camión
+    const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
+    if (tipoCamionSelect) {
+        tipoCamionSelect.innerHTML = '<option value="">-- Seleccione tipo de camión --</option>' +
+            TIPOS_CAMION.map((tipo, i) => `<option value="${[25,37,45][i]}">${tipo}</option>`).join('');
+    }
+});
+const RUTAS = [
+    "URBANO (SIBATE a Calle 26) (1 a 6 Clientes)",
+    "URBANO NORTE SUBA (Calle 26/ a calle 200) (1 a 6 Clientes)",
+    "PAQUETERA (ENTREGA CLIENTE) (8 a 12 Clientes)",
+    "PLATAFORMA ALKOSTO (PAGA DESCARGUE)",
+    "PLATAFORMA SODIMAC EL ZOL",
+    "FUNZA - MOSQUERA - MADRID / (incluye entregas en Bogotá)",
+    "MOSQUERA - MADRID - FACATATIVA",
+    "ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA",
+    "SIBERIA - TENJO - EL ROSAL",
+    "SAN FRANCISCO - LA VEGA - SUPATA - NOCAIMA - VILLETA",
+    "PTO SALGAR - LA DORADA - HONDA - MARIQUITA - ARMERO - LIBANO",
+    "MARIQUITA - FRESNO - MANZANARES - MANIZALEZ",
+    "COTA - CHIA - CAJICA - ZIPAQUIRA O SUBACHOQUE",
+    "SOPO - TOCANCIPA - GACHANCIPA - CHOCONTA",
+    "UBATE - CHIQUINQUIRA",
+    "SOPO - GUASCA - LA CALERA",
+    "PUENTE NACIONAL - BARBOSA",
+    "TUNJA - PAIPA - DUITAMA - SOGAMOSO O MONIQUIRA",
+    "VILLA DE LEYVA - RAQUIRA",
+    "TUNJA - DUITAMA - SOGAMOSO - SOATA",
+    "SOGAMOSO - SOATA - CAPITANEJO",
+    "GARAGOA - MONTEREY - AGUAZUL - YOPAL",
+    "YOPAL - MANI - PORE - PAZ DE ARIPORO",
+    "VILLAVICENCIO",
+    "VILLAVICENCIO - RESTREPO - CUMARAL - VILLANUEVA",
+    "VILLAVICENCIO - ACACIAS - CASTILLA - SAN CARLOS DE GUAROA",
+    "VILLAVICENCIO - SAN MARTIN - GRANADA - SAN JUAN DE ARAMA",
+    "VILLAVICENCIO - GRANADA- SAN JOSE DE GUAVIARE",
+    "VILLAVICENCIO - PUERTO LOPEZ - PUERTO GAITAN",
+    "SILVANIA - FUSAGASUGA",
+    "LA MESA - APULO - ANAPOIMA - TOCAIMA - AGUA DE DIOS - RICAURTE",
+    "GIRARDOT - MELGAR - ESPINAL- IBAGUE",
+    "IBAGUE - ARMENIA",
+    "CALI - PUERTO TEJADA",
+    "NEIVA",
+    "NEIVA - ORTEGA - CHAPARRAL - GUAMO",
+    "NEIVA - GARZON",
+    "NEIVA - GARZON - PITALITO",
+    "NEIVA - GARZON - LA PLATA - PITALITO",
+    "NEIVA - GARZON - PITALITO - FLORENCIA",
+    "NEIVA - GARZON - PITALITO - FLORENCIA - EL DONCELLO",
+    "PITALITO - FLORENCIA - CARTAGENA DEL CHAIRA",
+    "DUITAMA - CAPITANEJO - MALAGA",
+    "TUNJA - DUITAMA - SAN GIL - BUCARAMANGA",
+    "BUCARAMANGA - SAN GIL - FLORIDABLANCA",
+    "CUCUTA",
+    "BUCARAMANGA - CUCUTA",
+    "VALLEDUPAR",
+    "BARRANQUILLA",
+    "SANTA MARTA",
+    "CARTAGENA",
+    "URIBIA - MAICAO - RIOHACHA",
+    "VILLAVICENCIO - LEJANIAS - VISTAHERMOSA",
+    "EL DONCELLLO - SAN VICENTE DEL CAGUAN",
+    "SOACHA - GUARNE (ANT)",
+    "SOACHA - PEREIRA",
+    "MANIZALES - SOACHA"
+];
+
+
+
+// Interceptar intento de abrir modal de pedido si no está habilitado
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAgregarPedido = document.getElementById('btnAbrirModalPedido');
+    btnAgregarPedido.addEventListener('click', function(e) {
+        if (btnAgregarPedido.disabled) {
+            // Scroll a la sección de configuración del viaje (primer card con h2 correspondiente)
+            const seccion = Array.from(document.querySelectorAll('section.card')).find(card => card.querySelector('h2') && card.querySelector('h2').textContent.includes('Configuración del Viaje'));
+            if (seccion) {
+                seccion.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+            // Mostrar mensaje flotante
+            const toast = document.getElementById('toastMsg');
+            if (toast) {
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.opacity = 1; }, 10);
+                setTimeout(() => {
+                    toast.style.opacity = 0;
+                    setTimeout(() => { toast.style.display = 'none'; }, 350);
+                }, 2600);
+            }
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+});
+// --- Lógica de Pedidos y Productos ---
+let pedidos = [];
+let capacidadCamion = 25;
+let editandoPedido = false;
+let indiceEditando = null;
+let nuevoPedido = {
+    cliente: '',
+    numero: '',
+    canal: '',
+    productos: [crearProductoVacio()]
+};
+
+function crearProductoVacio() {
+    return { nombre: '', cantidad: 1, volumenUnitario: 0, pesoUnitario: 0, precioUnitario: 0, destino: '' };
+}
+
+function abrirModalPedido() {
+    editandoPedido = false;
+    indiceEditando = null;
+    nuevoPedido = {
+        cliente: '',
+        numero: '',
+        canal: '',
+        productos: [crearProductoVacio()]
+    };
+    renderProductosPedidoForm();
+    document.getElementById('pedidoCliente').value = '';
+    document.getElementById('pedidoNumero').value = '';
+    document.getElementById('pedidoCanal').value = '';
+    document.getElementById('modalPedidoTitulo').textContent = 'Agregar Pedido';
+        document.getElementById('modalPedido').classList.add('show');
+        document.getElementById('modalPedidoBackdrop').classList.add('show');
+        document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalPedido() {
+    document.getElementById('modalPedido').style.display = 'none';
+        document.getElementById('modalPedido').classList.remove('show');
+        document.getElementById('modalPedidoBackdrop').classList.remove('show');
+        document.body.style.overflow = '';
+}
+
+    // Cerrar modal al hacer clic fuera
+    document.addEventListener('mousedown', function(e) {
+        const modal = document.getElementById('modalPedido');
+        const backdrop = document.getElementById('modalPedidoBackdrop');
+        if (modal.classList.contains('show') && backdrop.classList.contains('show')) {
+            if (!modal.querySelector('.modal-dialog').contains(e.target) && backdrop.contains(e.target)) {
+                cerrarModalPedido();
+            }
+        }
+    });
+
+    // Cerrar modal con Esc
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') cerrarModalPedido();
+    });
+function agregarProductoAlPedido() {
+    nuevoPedido.productos.push(crearProductoVacio());
+    renderProductosPedidoForm();
+}
+
+function eliminarProductoDelPedido(idx) {
+    if (nuevoPedido.productos.length > 1) {
+        nuevoPedido.productos.splice(idx, 1);
+        renderProductosPedidoForm();
+    }
+}
+
+function renderProductosPedidoForm() {
+    const cont = document.getElementById('productosPedidoForm');
+    cont.innerHTML = '';
+    // Opciones de productos de prueba
+    const productosPrueba = [
+        { nombre: 'LAM UT 200', cantidad: 100, volumenUnitario: 0.16, precioUnitario: 96223, destino: 'Destino 1' },
+        { nombre: 'COL MONARCA', cantidad: 6, volumenUnitario: 0.53, precioUnitario: 605406, destino: 'Destino 2' },
+        { nombre: 'COL CONFORT PREMIUM', cantidad: 5, volumenUnitario: 0.90, precioUnitario: 734200, destino: 'Destino 3' }
+    ];
+    nuevoPedido.productos.forEach((prod, idx) => {
+        const div = document.createElement('div');
+        div.style.display = 'grid';
+        div.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr auto';
+        div.style.gap = '10px';
+        div.style.marginBottom = '8px';
+        div.style.alignItems = 'end';
+        div.innerHTML = `
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Producto:</label>
+                <select onchange="if(this.value){cargarProductoPrueba(${idx}, this.value);}else{actualizarProdCampo(${idx}, 'nombre', '');actualizarProdCampo(${idx}, 'cantidad', 1);actualizarProdCampo(${idx}, 'volumenUnitario', 0);actualizarProdCampo(${idx}, 'precioUnitario', 0);actualizarProdCampo(${idx}, 'destino', '');renderProductosPedidoForm();}" style="width:100%;margin-bottom:4px;">
+                    <option value="">-- Manual / Nuevo --</option>
+                    <option value="0" ${prod.nombre==='LAM UT 200'?'selected':''}>LAM UT 200</option>
+                    <option value="1" ${prod.nombre==='COL MONARCA'?'selected':''}>COL MONARCA</option>
+                    <option value="2" ${prod.nombre==='COL CONFORT PREMIUM'?'selected':''}>COL CONFORT PREMIUM</option>
+                </select>
+                <input type="text" value="${prod.nombre}" placeholder="Nombre producto" onchange="actualizarProdCampo(${idx}, 'nombre', this.value)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Cantidad:</label>
+                <input type="number" min="1" value="${prod.cantidad}" onchange="actualizarProdCampo(${idx}, 'cantidad', this.value)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Vol. Unit. (m³):</label>
+                <input type="number" step="0.001" value="${prod.volumenUnitario}" onchange="actualizarProdCampo(${idx}, 'volumenUnitario', this.value)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Precio Unit. ($):</label>
+                <input type="number" step="100" value="${prod.precioUnitario}" onchange="actualizarProdCampo(${idx}, 'precioUnitario', this.value)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Destino:</label>
+                <input type="text" value="${prod.destino}" onchange="actualizarProdCampo(${idx}, 'destino', this.value)">
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProductoDelPedido(${idx})">X</button>
+        `;
+        cont.appendChild(div);
+    });
+    // Función global para cargar producto de prueba
+    window.cargarProductoPrueba = function(idx, val) {
+        if (productosPrueba[val]) {
+            Object.keys(productosPrueba[val]).forEach(k => {
+                actualizarProdCampo(idx, k, productosPrueba[val][k]);
+            });
+            renderProductosPedidoForm();
+        }
+    }
+}
+
+function actualizarProdCampo(idx, campo, valor) {
+    if (campo === 'cantidad' || campo === 'volumenUnitario' || campo === 'pesoUnitario' || campo === 'precioUnitario') {
+        valor = parseFloat(valor) || 0;
+    }
+    nuevoPedido.productos[idx][campo] = valor;
+}
+
+function guardarPedido() {
+    // Validaciones básicas
+    const cliente = document.getElementById('pedidoCliente').value.trim();
+    const numero = document.getElementById('pedidoNumero').value.trim();
+    const canal = document.getElementById('pedidoCanal').value;
+    if (!cliente || !numero || !canal) {
+        mostrarAlerta('Completa todos los campos obligatorios del pedido.');
+        return;
+    }
+    if (nuevoPedido.productos.length === 0 || nuevoPedido.productos.some(p => !p.nombre || !p.destino)) {
+        mostrarAlerta('Completa los datos de todos los productos y su destino.');
+        return;
+    }
+    const volumenPedido = nuevoPedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.volumenUnitario), 0);
+    const volumenOcupado = pedidos.reduce((acc, ped) => acc + ped.productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0), 0);
+    let volumenFinal = volumenOcupado + volumenPedido;
+    if (editandoPedido) {
+        const anterior = pedidos[indiceEditando].productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0);
+        volumenFinal = volumenOcupado - anterior + volumenPedido;
+    }
+    if (volumenFinal > capacidadCamion) {
+        mostrarAlerta('¡Capacidad del camión superada!');
+        return;
+    }
+    const pedidoObj = {
+        cliente,
+        numero,
+        canal,
+        productos: JSON.parse(JSON.stringify(nuevoPedido.productos))
+    };
+    if (editandoPedido) {
+        pedidos[indiceEditando] = pedidoObj;
+    } else {
+        pedidos.push(pedidoObj);
+    }
+    cerrarModalPedido();
+    mostrarAlerta('');
+    renderPedidosResumen();
+    renderOcupacionVisual();
+}
+
+function mostrarAlerta(msg) {
+    const alerta = document.getElementById('alertaCapacidad');
+    if (msg) {
+        alerta.textContent = msg;
+        alerta.style.display = 'block';
+    } else {
+        alerta.style.display = 'none';
+    }
+}
+
+function renderPedidosResumen() {
+    const cont = document.getElementById('pedidosResumenContainer');
+    if (pedidos.length === 0) {
+        cont.innerHTML = '';
+        return;
+    }
+    let html = `<h3 style=\"margin: 0 0 15px 0; font-size: 0.95em; color: #334155;\">Pedidos en el Camión</h3>`;
+    html += `<div class='acordeon-pedidos'>`;
+    pedidos.forEach((pedido, idx) => {
+        const volTotal = pedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.volumenUnitario), 0);
+        const subtotal = pedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.precioUnitario), 0);
+        html += `
+        <div class='acordeon-item' style="margin-bottom:8px;border-radius:8px;overflow:hidden;">
+            <div class='acordeon-header' style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 18px;background:#f8fafc;font-weight:600;" onclick="toggleAcordeonPedido(${idx})">
+                <span><span style='color:#1e40af;'>${pedido.cliente}</span> | Pedido: <b>${pedido.numero}</b> | Canal: <span style='color:#64748b;'>${pedido.canal}</span></span>
+                <span style='font-size:0.95em;color:#fb923c;'>Vol: ${volTotal.toFixed(2)} m³ | $${subtotal.toLocaleString()}</span>
+                <span id='acordeon-icon-${idx}' style='margin-left:12px;font-size:1.2em;'>▼</span>
+            </div>
+            <div class='acordeon-body' id='acordeon-body-${idx}' style='display:none;background:#fff;padding:12px 24px 12px 24px;'>
+                <div style='overflow-x:auto;'>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+                    <thead>
+                        <tr style='background:#f1f5fa;'>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Producto</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Cantidad</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Vol. Unit. (m³)</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Vol. Total (m³)</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Precio Unit.</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Valor Total</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Destino</th>
+                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pedido.productos.map((prod, pidx) => {
+                            const volTotal = (prod.cantidad * prod.volumenUnitario).toFixed(2);
+                            const valorTotal = (prod.cantidad * prod.precioUnitario).toLocaleString();
+                            return `
+                            <tr>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.nombre}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.cantidad}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.volumenUnitario}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${volTotal}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.precioUnitario}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>$${valorTotal}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.destino}</td>
+                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>
+                                    <button class='btn btn-warning btn-sm' onclick='editarPedido(${idx});setTimeout(()=>{document.querySelectorAll("#productosPedidoForm input")[0].focus();},200)'>Editar</button>
+                                    <button class='btn btn-danger btn-sm' onclick='eliminarProductoDesdeAcordeon(${idx},${pidx})'>Eliminar</button>
+                                </td>
+                            </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+                </div>
+                <div style='margin-top:8px;display:flex;gap:8px;'>
+                    <button class='btn btn-secondary btn-sm' onclick='editarPedido(${idx});setTimeout(()=>{window.agregarProductoAlPedido();},200)'>Agregar otro producto</button>
+                    <button class='btn btn-warning btn-sm' onclick='editarPedido(${idx})'>Editar Pedido</button>
+                    <button class='btn btn-danger btn-sm' onclick='eliminarPedido(${idx})'>Eliminar Pedido</button>
+                </div>
+            </div>
+        </div>`;
+    // Eliminar producto desde el acordeón
+    window.eliminarProductoDesdeAcordeon = function(pedidoIdx, prodIdx) {
+        if (pedidos[pedidoIdx].productos.length > 1) {
+            pedidos[pedidoIdx].productos.splice(prodIdx, 1);
+            renderPedidosResumen();
+            renderOcupacionVisual();
+        }
+    }
+    });
+    html += `</div>`;
+    cont.innerHTML = html;
+    // Cerrar todos los acordeones menos el último agregado
+    pedidos.forEach((_, i) => {
+        document.getElementById('acordeon-body-' + i).style.display = 'none';
+        document.getElementById('acordeon-icon-' + i).textContent = '▼';
+    });
+// Eliminar llave extra aquí
+// Función global para el acordeón
+window.toggleAcordeonPedido = function(idx) {
+    const body = document.getElementById('acordeon-body-' + idx);
+    const icon = document.getElementById('acordeon-icon-' + idx);
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.textContent = '▲';
+    } else {
+        body.style.display = 'none';
+        icon.textContent = '▼';
+    }
+}
+function editarPedido(idx) {
+    editandoPedido = true;
+    indiceEditando = idx;
+    // Copiar datos del pedido seleccionado
+    const pedido = pedidos[idx];
+    nuevoPedido = {
+        cliente: pedido.cliente,
+        numero: pedido.numero,
+        canal: pedido.canal,
+        productos: JSON.parse(JSON.stringify(pedido.productos))
+    };
+    renderProductosPedidoForm();
+    document.getElementById('pedidoCliente').value = pedido.cliente;
+    document.getElementById('pedidoNumero').value = pedido.numero;
+    document.getElementById('pedidoCanal').value = pedido.canal;
+    document.getElementById('modalPedidoTitulo').textContent = 'Editar Pedido';
+    document.getElementById('modalPedido').classList.add('show');
+    document.getElementById('modalPedidoBackdrop').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+}
+
+function renderOcupacionVisual() {
+    const volumenOcupado = pedidos.reduce((acc, ped) => acc + ped.productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0), 0);
+    const porcentajeOcupacion = ((volumenOcupado / capacidadCamion) * 100).toFixed(2);
+    // Calcular valor flete usando el modelo centralizado RutaModel
+    let valorFlete = 0;
+    const rutaSelect = document.getElementById('ruta');
+    const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
+    // El value del select es el índice, pero el id de la ruta es índice+1
+    const rutaIdx = rutaSelect && rutaSelect.value ? parseInt(rutaSelect.value) : null;
+    const rutaId = rutaIdx !== null && !isNaN(rutaIdx) ? rutaIdx + 1 : null;
+    const tipoCamion = tipoCamionSelect && tipoCamionSelect.value ? parseInt(tipoCamionSelect.value) : null;
+    if (window.appController && rutaId && tipoCamion) {
+        try {
+            valorFlete = window.appController.rutaModel.obtenerTarifaSync(rutaId, tipoCamion);
+        } catch (e) { valorFlete = 0; }
+    }
+    // Mostrar capacidad del camión seleccionado
+    let capacidadTexto = '';
+    if (tipoCamion) {
+        capacidadTexto = `<span style='font-size:0.95em;display:block;color:#64748b;margin-top:2px;'>Capacidad: ${tipoCamion} m³</span>`;
+    }
+    // Mostrar flete
+    let fleteTexto = '';
+    let nombreRuta = '';
+    let valorFleteDirecto = '';
+    if (rutaId && window.appController && window.appController.rutaModel) {
+        const rutaObj = window.appController.rutaModel.obtenerRutaPorIdSync(rutaId);
+        if (rutaObj && rutaObj.nombre) {
+            nombreRuta = `<span style='font-size:0.93em;display:block;color:#334155;margin-top:2px;'>Ruta: <b>${rutaObj.nombre}</b></span>`;
+            // Mostrar el valor del flete directamente del array
+            if (tipoCamion === 25) valorFleteDirecto = rutaObj.tarifa_25m3;
+            else if (tipoCamion === 37) valorFleteDirecto = rutaObj.tarifa_37m3;
+            else if (tipoCamion === 45) valorFleteDirecto = rutaObj.tarifa_45m3;
+        }
+    }
+    if (typeof valorFleteDirecto !== 'undefined' && valorFleteDirecto !== null && valorFleteDirecto !== '') {
+        fleteTexto = `<span style='font-size:0.95em;display:block;color:#1e40af;margin-top:2px;'>Flete: $${valorFleteDirecto ? valorFleteDirecto.toLocaleString() : '0'}</span>`;
+    }
+    document.getElementById('porcentajeOcupacion').innerHTML = porcentajeOcupacion + '%' + capacidadTexto + nombreRuta + fleteTexto;
+    const visual = document.getElementById('ocupacionVisual');
+    // El camión siempre centrado dentro de la barra
+    const barraWidth = 120; // px
+    visual.innerHTML = `<div style='width:${barraWidth}px;height:60px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 2px 8px #0001;border:2px solid #fb923c;'>
+        <div style='width:${porcentajeOcupacion}%;height:100%;background:${porcentajeOcupacion<80?'#60a5fa':(porcentajeOcupacion<100?'#facc15':'#ef4444')};position:absolute;left:0;top:0;'></div>
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;">
+            <span style='font-size:2em;line-height:1;'>🚚</span>
+        </div>
+    </div>
+    <span style='font-size:1.1em;color:#334155;'>${volumenOcupado.toFixed(2)} m³ / ${capacidadCamion} m³</span>`;
+}
+
+function eliminarPedido(idx) {
+    pedidos.splice(idx, 1);
+    renderPedidosResumen();
+    renderOcupacionVisual();
+}
+
+// Inicialización segura tras cargar el DOM
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('btnAbrirModalPedido')) document.getElementById('btnAbrirModalPedido').onclick = abrirModalPedido;
+    if (document.getElementById('btnCerrarModalPedido')) document.getElementById('btnCerrarModalPedido').onclick = cerrarModalPedido;
+    if (document.getElementById('btnCancelarModalPedido')) document.getElementById('btnCancelarModalPedido').onclick = cerrarModalPedido;
+    if (document.getElementById('btnAgregarProductoPedido')) document.getElementById('btnAgregarProductoPedido').onclick = agregarProductoAlPedido;
+    if (document.getElementById('btnGuardarPedido')) document.getElementById('btnGuardarPedido').onclick = guardarPedido;
+    renderPedidosResumen();
+    renderOcupacionVisual();
+});
+
+
+         // --- Validación de Configuración del Viaje ---
+            function validarConfiguracionViajeCompleta() {
+                const ruta = document.getElementById('ruta').value;
+                const camion = document.getElementById('tipoCamionSeleccionado').value;
+                const fecha = document.getElementById('fechaDespacho').value;
+                const btnAgregarPedido = document.getElementById('btnAbrirModalPedido');
+                const bloqueoMsg = document.getElementById('bloqueoCargaMsg');
+                let habilitado = ruta && camion && fecha;
+                btnAgregarPedido.disabled = !habilitado;
+                if (bloqueoMsg) bloqueoMsg.style.display = habilitado ? 'none' : 'block';
+                // Opcional: deshabilitar también el resumen de pedidos y otros campos si se requiere
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('ruta').addEventListener('change', validarConfiguracionViajeCompleta);
+                document.getElementById('tipoCamionSeleccionado').addEventListener('change', validarConfiguracionViajeCompleta);
+                document.getElementById('fechaDespacho').addEventListener('change', validarConfiguracionViajeCompleta);
+                validarConfiguracionViajeCompleta();
+            });
+
+</script>
+
         <!-- Módulo 2: Agregar Pedidos/Productos a la Carga -->
-        <section class="card">
+        <section class="card" id="carga-camion-section">
+                        <div id="modalPedidoBackdrop" class="modal-backdrop"></div>
             <h2>📦 Carga del Camión</h2>
-            
             <div style="background: #eff6ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 3px solid #2563eb;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <p style="color: #1e40af; font-size: 0.95em; margin: 0; font-weight: 600;">
-                            💡 Agregar productos al camión
-                        </p>
-                        <p style="color: #64748b; font-size: 0.85em; margin: 5px 0 0 0;">
-                            El sistema validará que no exceda la capacidad seleccionada
-                        </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 18px;">
+                    <div style="text-align:left;">
+                        <p style="color: #1e40af; font-size: 0.95em; margin: 0; font-weight: 600;">Agregar pedidos al camión</p>
+                        <p style="color: #64748b; font-size: 0.85em; margin: 5px 0 0 0;">El sistema validará que no exceda la capacidad seleccionada</p>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.85em; color: #64748b;">Ocupación</div>
-                        <div id="porcentajeOcupacion" style="font-size: 1.3em; font-weight: bold; color: #2563eb;">0%</div>
+                    <div style="justify-self:center;">
+                        <div style="font-size: 0.85em; color: #64748b; text-align:center;">Ocupación</div>
+                        <div id="ocupacionVisual" style="width:120px;height:60px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 2px 8px #0001;border:2px solid #fb923c;display:inline-block;margin-top:4px;"></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div id="porcentajeOcupacion" style="font-size: 1.3em; font-weight: bold; color: #2563eb; min-width: 60px;">0%</div>
                     </div>
                 </div>
             </div>
-
             <div id="alertaCapacidad" class="alert alert-warning" style="display:none; margin-bottom: 15px;"></div>
-
-            <!-- Formulario para agregar productos -->
-            <div style="background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="margin: 0 0 15px 0; font-size: 0.95em; color: #334155;">➕ Agregar Producto/Pedido</h3>
-                
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="nombreProducto">Producto:</label>
-                        <input type="text" id="nombreProducto" list="productosEjemplo" placeholder="Ej: COL MONARCA 100X190X28">
-                        <datalist id="productosEjemplo">
-                            <option value="LAM UT 200,0x200,0x004,0">
-                            <option value="COL MONARCA 100X190X28 JAC">
-                            <option value="COL CONFORT PREMIUM 140X190X34 NUBE 4.0">
-                        </datalist>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="clientePedido">Cliente:</label>
-                        <input type="text" id="clientePedido" placeholder="Nombre cliente">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="ordenCompra">Orden de Compra:</label>
-                        <input type="text" id="ordenCompra" placeholder="OC-XXX">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="destinoCliente">📍 Destino del Pedido:</label>
-                        <select id="destinoCliente">
-                            <option value="">-- Seleccione destino --</option>
-                        </select>
-                        <small style="color: #64748b; margin-top: 3px; display: block;">Distancia: <span id="distanciaSeleccionada">0 km</span></small>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cantidadProducto">Cantidad:</label>
-                        <input type="number" id="cantidadProducto" placeholder="100" min="1">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto; gap: 10px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="volumenUnitario">Vol. Unit. (m³):</label>
-                        <input type="number" id="volumenUnitario" placeholder="0.05" step="0.001">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="pesoUnitario">Peso Unit. (kg):</label>
-                        <input type="number" id="pesoUnitario" placeholder="50" step="0.1">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="precioUnitario">Precio Unit. ($):</label>
-                        <input type="number" id="precioUnitario" placeholder="35000" step="100">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Vol. Total:</label>
-                        <input type="text" id="volumenTotalPrevio" readonly style="background: #f1f5f9; font-weight: bold;" value="0.00 m³">
-                    </div>
-                    <button onclick="agregarPedido()" class="btn-secondary" style="height: fit-content; margin-top: 24px;">
-                        ➕ Agregar
-                    </button>
-                </div>
-                
-                <!-- Botones de ejemplo -->
-                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-                    <small style="color: #64748b; display: block; margin-bottom: 8px;">⚡ Ejemplos rápidos:</small>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="cargarEjemplo(1)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
-                            Colchón Monarca
-                        </button>
-                        <button onclick="cargarEjemplo(2)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
-                            Colchón Premium
-                        </button>
-                        <button onclick="cargarEjemplo(3)" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">
-                            Laminado 200x200
-                        </button>
+            <button class="btn btn-primary mb-3" id="btnAbrirModalPedido" type="button" disabled>Agregar Pedido</button>
+            <!-- Modal Pedido -->
+            <div id="modalPedido" class="modal" style="display:none;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalPedidoTitulo">Agregar Pedido</h5>
+                            <button type="button" class="btn-close" id="btnCerrarModalPedido"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Cliente:</label>
+                                    <input type="text" id="pedidoCliente" placeholder="Nombre cliente">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Número de Pedido:</label>
+                                    <input type="text" id="pedidoNumero" placeholder="N° Pedido">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Canal:</label>
+                                    <select id="pedidoCanal">
+                                        <option value="">Seleccione canal</option>
+                                        <option>Propio</option>
+                                        <option>Especializado</option>
+                                        <option>Tradicional</option>
+                                        <option>Industrial</option>
+                                        <option>Moderno</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <h4 style="font-size: 0.93em; color: #64748b; margin: 10px 0 5px 0;">Productos del Pedido</h4>
+                            <div id="productosPedidoForm"></div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnAgregarProductoPedido" style="margin-top: 5px;">Agregar otro producto</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" id="btnCancelarModalPedido" style="min-width:120px;">Cancelar</button>
+                            <button class="btn btn-success" id="btnGuardarPedido" style="min-width:160px;font-weight:bold;">Registrar Pedido</button>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div id="pedidosResumenContainer" style="margin-top: 20px;"></div>
+            <div id="bloqueoCargaMsg" class="alert alert-warning" style="display:none; margin-top: 10px;">Primero complete la Configuración del Viaje para habilitar la carga del camión.</div>
+   
 
-            <!-- Lista de pedidos agregados -->
-            <div id="listaPedidos" style="display:none; margin-top: 20px;">
-                <h3 style="margin: 0 0 15px 0; font-size: 0.95em; color: #334155;">📋 Pedidos en el Camión</h3>
-                <div id="pedidosContainer"></div>
-            </div>
         </section>
 
         <!-- Módulo 3: Resumen y Cálculo del Despacho -->
@@ -291,44 +923,46 @@
 
         <!-- Ejemplo de tabla de asignación de flete por volumen -->
         <h2 style="margin-top:32px;">Ejemplo de tabla de asignación de flete por volumen</h2>
-        <table style="margin-top:12px;">
-            <thead>
-                <tr>
-                    <th>N° Ruta</th>
-                    <th>Nombre Ruta</th>
-                    <th>Tipo Vehículo</th>
-                    <th>Costo Flete ($)</th>
-                    <th>Canal</th>
-                    <th>ID Producto</th>
-                    <th>Descripción Producto</th>
-                    <th>Medidas (m)</th>
-                    <th>Unidades</th>
-                    <th>Vol. Unitario (m³)</th>
-                    <th>Vol. Total (m³)</th>
-                    <th>Ocupación Volumétrica (%)</th>
-                    <th>Valor m³ (Flete/Camión)</th>
-                    <th>Valor Flete Producto</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>08</td>
-                    <td>ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA</td>
-                    <td>25 m³</td>
-                    <td>970.659</td>
-                    <td>Tradicional</td>
-                    <td>90050271</td>
-                    <td>COLCHÓN MONARCA 100X190X28 JAC</td>
-                    <td>1.00 x 1.90 x 0.28</td>
-                    <td>6</td>
-                    <td>0.53</td>
-                    <td>3.18</td>
-                    <td>12.72%</td>
-                    <td>38.826,36</td>
-                    <td>123.947,76</td>
-                </tr>
-            </tbody>
-        </table>
+        <div style="overflow-x:auto; max-width:100vw;">
+            <table style="margin-top:12px; min-width:900px;">
+                <thead>
+                    <tr>
+                        <th>N° Ruta</th>
+                        <th>Nombre Ruta</th>
+                        <th>Tipo Vehículo</th>
+                        <th>Costo Flete ($)</th>
+                        <th>Canal</th>
+                        <th>ID Producto</th>
+                        <th>Descripción Producto</th>
+                        <th>Medidas (m)</th>
+                        <th>Unidades</th>
+                        <th>Vol. Unitario (m³)</th>
+                        <th>Vol. Total (m³)</th>
+                        <th>Ocupación Volumétrica (%)</th>
+                        <th>Valor m³ (Flete/Camión)</th>
+                        <th>Valor Flete Producto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>08</td>
+                        <td>ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA</td>
+                        <td>25 m³</td>
+                        <td>970.659</td>
+                        <td>Tradicional</td>
+                        <td>90050271</td>
+                        <td>COLCHÓN MONARCA 100X190X28 JAC</td>
+                        <td>1.00 x 1.90 x 0.28</td>
+                        <td>6</td>
+                        <td>0.53</td>
+                        <td>3.18</td>
+                        <td>12.72%</td>
+                        <td>38.826,36</td>
+                        <td>123.947,76</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Modelos -->

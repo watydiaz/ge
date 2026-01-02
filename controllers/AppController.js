@@ -433,50 +433,58 @@ class AppController {
     actualizarResumen() {
         const resumen = this.despachoModel.obtenerResumen();
 
-        // Actualizar volumen total
-        document.getElementById('volumenTotal').textContent = `${resumen.volumenTotal.toFixed(2)} m³`;
-
-        // Actualizar tipo de camión y ocupación
-        if (resumen.tipoCamion) {
-            document.getElementById('tipoCamion').textContent = `${resumen.tipoCamion} m³`;
-            document.getElementById('ocupacionReal').textContent = `${resumen.porcentajeOcupacion.toFixed(1)}% (${resumen.volumenTotal.toFixed(2)}/${resumen.capacidadCamion} m³)`;
-            
-            // Cambiar color según ocupación
-            const ocupacionElem = document.getElementById('ocupacionReal');
-            if (resumen.porcentajeOcupacion > 100) {
-                ocupacionElem.style.color = '#dc2626'; // Rojo
-            } else if (resumen.porcentajeOcupacion > 90) {
-                ocupacionElem.style.color = '#f59e0b'; // Amarillo
-            } else {
-                ocupacionElem.style.color = '#059669'; // Verde
-            }
-        } else {
-            document.getElementById('tipoCamion').textContent = '-';
-            document.getElementById('ocupacionReal').textContent = '-';
-        }
-
         // Actualizar flete total
-        if (this.despachoModel.ruta && this.despachoModel.tipoCamionSeleccionado) {
-            try {
-                const flete = this.rutaModel.obtenerTarifaSync(
-                    this.despachoModel.rutaId,
-                    this.despachoModel.tipoCamionSeleccionado
-                );
-                // El flete está en miles de pesos
-                const fleteEnPesos = flete * 1000;
-                document.getElementById('fleteTotal').textContent = `$ ${fleteEnPesos.toLocaleString('es-CO', {maximumFractionDigits: 0})}`;
-                document.getElementById('fleteTotal').style.color = '#059669';
-                document.getElementById('fleteTotal').style.fontWeight = 'bold';
-            } catch(error) {
-                console.error('Error obteniendo tarifa:', error);
-                document.getElementById('fleteTotal').textContent = '$ 0';
+        const fleteTotalElem = document.getElementById('fleteTotal');
+        if (fleteTotalElem) {
+            if (this.despachoModel.ruta && this.despachoModel.tipoCamionSeleccionado) {
+                try {
+                    const tarifa = this.despachoModel.obtenerTarifa();
+                    fleteTotalElem.textContent = `$ ${tarifa.toLocaleString()}`;
+                } catch (error) {
+                    console.error('Error obteniendo tarifa:', error);
+                    fleteTotalElem.textContent = '$ 0';
+                }
+            } else {
+                fleteTotalElem.textContent = '$ 0';
             }
-        } else {
-            document.getElementById('fleteTotal').textContent = '$ 0';
         }
 
         // Actualizar valor total de productos
-        document.getElementById('valorTotalProductos').textContent = `$ ${resumen.valorTotal.toLocaleString()}`;
+        const valorTotalElem = document.getElementById('valorTotalProductos');
+        if (valorTotalElem) {
+            valorTotalElem.textContent = `$ ${resumen.valorTotal.toLocaleString()}`;
+        }
+        document.getElementById('indicadorTipoCamion').textContent = '-';
+        document.getElementById('indicadorOcupacion').textContent = '-';
+
+        // Actualizar flete total
+        const fleteTotalElem2 = document.getElementById('fleteTotal');
+        if (fleteTotalElem2) {
+            if (this.despachoModel.ruta && this.despachoModel.tipoCamionSeleccionado) {
+                try {
+                    const flete = this.rutaModel.obtenerTarifaSync(
+                        this.despachoModel.rutaId,
+                        this.despachoModel.tipoCamionSeleccionado
+                    );
+                    // El flete está en miles de pesos
+                    const fleteEnPesos = flete * 1000;
+                    fleteTotalElem2.textContent = `$ ${fleteEnPesos.toLocaleString('es-CO', {maximumFractionDigits: 0})}`;
+                    fleteTotalElem2.style.color = '#059669';
+                    fleteTotalElem2.style.fontWeight = 'bold';
+                } catch(error) {
+                    console.error('Error obteniendo tarifa:', error);
+                    fleteTotalElem2.textContent = '$ 0';
+                }
+            } else {
+                fleteTotalElem2.textContent = '$ 0';
+            }
+        }
+
+        // Actualizar valor total de productos
+        const valorTotalElem2 = document.getElementById('valorTotalProductos');
+        if (valorTotalElem2) {
+            valorTotalElem2.textContent = `$ ${resumen.valorTotal.toLocaleString()}`;
+        }
     }
 
     /**

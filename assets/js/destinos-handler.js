@@ -11,15 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listener: cuando cambia la ruta, cargar sus destinos
     if (selectRuta) {
         selectRuta.addEventListener('change', function() {
+            if (!selectDestino) return; // Protección si no existe el select
             const selectedOption = this.options[this.selectedIndex];
-            
             if (selectedOption && selectedOption.dataset.destinos) {
                 try {
                     const destinos = JSON.parse(selectedOption.dataset.destinos);
-                    
                     // Limpiar select
                     selectDestino.innerHTML = '<option value="">-- Seleccione destino --</option>';
-                    
                     // Agregar destinos
                     destinos.forEach(destino => {
                         const option = document.createElement('option');
@@ -27,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         option.textContent = `${destino.nombre} (${destino.distancia} km)`;
                         selectDestino.appendChild(option);
                     });
-                    
                     // Mostrar el selector si hay destinos
                     if (destinos.length > 0) {
                         selectDestino.parentElement.style.display = 'block';
