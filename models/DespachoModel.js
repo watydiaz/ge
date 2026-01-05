@@ -1,3 +1,20 @@
+    /**
+     * Obtiene la tarifa de flete según la ruta y el tipo de camión seleccionado
+     */
+    obtenerTarifa() {
+        if (!this.ruta || !this.tipoCamionSeleccionado) return 0;
+        // RutaModel debe estar disponible globalmente o inyectarse
+        if (typeof RutaModel === 'function') {
+            // Instancia temporal para obtener tarifa
+            const rutaModel = new RutaModel();
+            return rutaModel.obtenerTarifaPorTipoCamion(this.ruta.id, this.tipoCamionSeleccionado) || 0;
+        }
+        // Si la instancia está en this.rutaModel, usarla
+        if (this.rutaModel && typeof this.rutaModel.obtenerTarifaPorTipoCamion === 'function') {
+            return this.rutaModel.obtenerTarifaPorTipoCamion(this.ruta.id, this.tipoCamionSeleccionado) || 0;
+        }
+        return 0;
+    }
 /**
  * Modelo de Despacho
  * Gestiona el estado y lógica de negocio del despacho

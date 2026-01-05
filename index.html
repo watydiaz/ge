@@ -212,8 +212,6 @@
                     <h1>Sistema de Cálculo de Fletes - Modelo </h1>
                     <p>Dimensión Operativa (Volumen)</p>
                 </div>
-                <a href="modelo_costos_flete.html" style="margin-left:16px;background:#2563eb;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Modelo de Costos</a>
-                <a href="modelo_tabla_flete.html" style="margin-left:16px;background:#059669;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:1em;">Tabla Flete Volumen</a>
             </div>
         </header>
 
@@ -660,42 +658,44 @@ function editarPedido(idx) {
 function renderOcupacionVisual() {
     const volumenOcupado = pedidos.reduce((acc, ped) => acc + ped.productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0), 0);
     const porcentajeOcupacion = ((volumenOcupado / capacidadCamion) * 100).toFixed(2);
-    // Calcular valor flete usando el modelo centralizado RutaModel
-    let valorFlete = 0;
     const rutaSelect = document.getElementById('ruta');
     const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
-    // El value del select es el índice, pero el id de la ruta es índice+1
-    const rutaIdx = rutaSelect && rutaSelect.value ? parseInt(rutaSelect.value) : null;
-    const rutaId = rutaIdx !== null && !isNaN(rutaIdx) ? rutaIdx + 1 : null;
-    const tipoCamion = tipoCamionSelect && tipoCamionSelect.value ? parseInt(tipoCamionSelect.value) : null;
-    if (window.appController && rutaId && tipoCamion) {
-        try {
-            valorFlete = window.appController.rutaModel.obtenerTarifaSync(rutaId, tipoCamion);
-        } catch (e) { valorFlete = 0; }
-    }
-    // Mostrar capacidad del camión seleccionado
+    const rutaId = rutaSelect && rutaSelect.value ? parseInt(rutaSelect.value) : null;
+    let tipoCamion = tipoCamionSelect && tipoCamionSelect.value ? tipoCamionSelect.value : null;
+    // Asegurar que el tipo de camión sea número
+    if (tipoCamion !== null) tipoCamion = Number(tipoCamion);
     let capacidadTexto = '';
     if (tipoCamion) {
         capacidadTexto = `<span style='font-size:0.95em;display:block;color:#64748b;margin-top:2px;'>Capacidad: ${tipoCamion} m³</span>`;
     }
-    // Mostrar flete
-    let fleteTexto = '';
     let nombreRuta = '';
-    let valorFleteDirecto = '';
     if (rutaId && window.appController && window.appController.rutaModel) {
         const rutaObj = window.appController.rutaModel.obtenerRutaPorIdSync(rutaId);
         if (rutaObj && rutaObj.nombre) {
             nombreRuta = `<span style='font-size:0.93em;display:block;color:#334155;margin-top:2px;'>Ruta: <b>${rutaObj.nombre}</b></span>`;
-            // Mostrar el valor del flete directamente del array
-            if (tipoCamion === 25) valorFleteDirecto = rutaObj.tarifa_25m3;
-            else if (tipoCamion === 37) valorFleteDirecto = rutaObj.tarifa_37m3;
-            else if (tipoCamion === 45) valorFleteDirecto = rutaObj.tarifa_45m3;
         }
     }
-    if (typeof valorFleteDirecto !== 'undefined' && valorFleteDirecto !== null && valorFleteDirecto !== '') {
-        fleteTexto = `<span style='font-size:0.95em;display:block;color:#1e40af;margin-top:2px;'>Flete: $${valorFleteDirecto ? valorFleteDirecto.toLocaleString() : '0'}</span>`;
+    // Array de rutas con tarifas para jugar con el valor
+    const rutasEjemplo = [
+        {
+            id: 8,
+            nombre: 'ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA',
+            tarifas: {
+                25: 970659,
+                37: 997253,
+                45: 997253
+            }
+        }
+    ];
+    let valorFlete = `<span style='font-size:1em;display:block;color:#2563eb;margin-top:2px;'><b>Valor Flete:</b> `;
+    let rutaEjemplo = rutasEjemplo.find(r => r.id === rutaId);
+    if (rutaEjemplo && tipoCamion && rutaEjemplo.tarifas[tipoCamion]) {
+        valorFlete += `$${rutaEjemplo.tarifas[tipoCamion].toLocaleString('es-CO')}`;
+    } else {
+        valorFlete += '--';
     }
-    document.getElementById('porcentajeOcupacion').innerHTML = porcentajeOcupacion + '%' + capacidadTexto + nombreRuta + fleteTexto;
+    valorFlete += `</span>`;
+    document.getElementById('porcentajeOcupacion').innerHTML = `<span>${porcentajeOcupacion}%</span>` + capacidadTexto + nombreRuta + `<div style='margin-top:8px;'>${valorFlete}</div>`;
     const visual = document.getElementById('ocupacionVisual');
     // El camión siempre centrado dentro de la barra
     const barraWidth = 120; // px
@@ -961,10 +961,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Modelos -->
     <script src="models/RutaModel.js"></script>
-    <script src="models/CamionModel.js"></script>
-    <script src="models/DespachoModel.js"></script>
-    <script src="models/CalculoModel.js"></script>
-    <script src="models/ClienteSAPModel.js"></script>
 
     <!-- Base de Datos (opcional - si existe BD) -->
     <script src="config/database.js"></script>

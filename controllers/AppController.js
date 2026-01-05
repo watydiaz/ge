@@ -10,9 +10,6 @@ class AppController {
 
         // Inicializar Modelos (sin BD por ahora)
         this.rutaModel = new RutaModel();
-        this.camionModel = new CamionModel();
-        this.despachoModel = new DespachoModel();
-        this.calculoModel = new CalculoModel(this.rutaModel, this.camionModel);
 
         // Inicializar Vistas
         this.configuracionView = new ConfiguracionViajeView();
@@ -37,10 +34,10 @@ class AppController {
             this.rutaModel = new RutaModel(this.db);
             this.calculoModel = new CalculoModel(this.rutaModel, this.camionModel);
 
-            console.log('✅ Conectado a base de datos IndexedDB');
+            console.log('Conectado a base de datos IndexedDB');
             return true;
         } catch (error) {
-            console.warn('⚠️ No se pudo conectar a BD, usando datos hardcodeados:', error.message);
+            console.warn('No se pudo conectar a BD, usando datos hardcodeados:', error.message);
             return false;
         }
     }
@@ -51,14 +48,10 @@ class AppController {
     async inicializar() {
         // Intentar conectar a BD
         await this.conectarBaseDatos();
-
-        // Cargar rutas (de BD o fallback)
         const rutas = await this.rutaModel.obtenerRutas();
-        
         this.configuracionView.renderizarRutas(rutas);
         this.configuracionView.establecerFechaActual();
         this.actualizarResumen();
-
         console.log(`📍 Sistema inicializado con ${rutas.length} rutas`);
     }
 
@@ -433,19 +426,24 @@ class AppController {
     actualizarResumen() {
         const resumen = this.despachoModel.obtenerResumen();
 
-        // Actualizar flete total
+
+        // Mostrar el valor del flete solo si hay ruta y camión seleccionados
         const fleteTotalElem = document.getElementById('fleteTotal');
         if (fleteTotalElem) {
             if (this.despachoModel.ruta && this.despachoModel.tipoCamionSeleccionado) {
-                try {
-                    const tarifa = this.despachoModel.obtenerTarifa();
-                    fleteTotalElem.textContent = `$ ${tarifa.toLocaleString()}`;
-                } catch (error) {
-                    console.error('Error obteniendo tarifa:', error);
+                const tarifa = this.despachoModel.obtenerTarifa();
+                if (tarifa > 0) {
+                    fleteTotalElem.textContent = `$ ${tarifa.toLocaleString('es-CO', {maximumFractionDigits: 0})}`;
+                    fleteTotalElem.style.color = '#059669';
+                    fleteTotalElem.style.fontWeight = 'bold';
+                } else {
                     fleteTotalElem.textContent = '$ 0';
+                    fleteTotalElem.style.color = '#ef4444';
                 }
             } else {
-                fleteTotalElem.textContent = '$ 0';
+                fleteTotalElem.textContent = 'Seleccione ruta y camión';
+                fleteTotalElem.style.color = '#64748b';
+                fleteTotalElem.style.fontWeight = 'normal';
             }
         }
 
