@@ -1,0 +1,52 @@
+/* Estilos principales para GE Logística */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 12px 48px 12px;
+}
+.card {
+    background: rgba(251, 146, 60, 0.13);
+    border-radius: 14px;
+    box-shadow: 0 2px 12px #0001;
+    padding: 32px 24px 28px 24px;
+    margin-bottom: 32px;
+    border: 1px solid #fb923c33;
+    transition: box-shadow 0.2s;
+}
+.card h2 {
+    color: #1e40af;
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.35em;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+.form-group label {
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 4px;
+    display: block;
+}
+input, select, textarea {
+    border: 1.5px solid #fb923c !important;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 1em;
+    width: 100%;
+    background: #fff;
+    margin-bottom: 0;
+    box-sizing: border-box;
+    transition: border 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #ea580c !important;
+    box-shadow: 0 0 0 2px #fb923c44;
+}

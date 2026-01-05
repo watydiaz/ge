@@ -264,13 +264,7 @@ const TIPOS_CAMION = [
 
 // Autocompletar selects de ruta y tipo de camión al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
-    // Rellenar select de rutas
-    const rutaSelect = document.getElementById('ruta');
-        if (rutaSelect) {
-            rutaSelect.innerHTML = '<option value="">-- Seleccione una ruta --</option>' +
-                RUTAS.map((destino, i) => `<option value="${i}">RUTA ${String(i+1).padStart(2,'0')} - ${destino}</option>`).join('');
-        }
-    // Rellenar select de tipo de camión
+    // Solo rellenar select de tipo de camión, el de rutas lo gestiona el controlador MVC
     const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
     if (tipoCamionSelect) {
         tipoCamionSelect.innerHTML = '<option value="">-- Seleccione tipo de camión --</option>' +
