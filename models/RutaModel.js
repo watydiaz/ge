@@ -5,6 +5,14 @@
  */
 
 class RutaModel {
+            /**
+             * Obtiene una ruta por su ID de forma sincrónica
+             * @param {number} id
+             * @returns {object|null}
+             */
+            obtenerRutaPorIdSync(id) {
+                return (this.rutasFallback || []).find(r => r.id === Number(id)) || null;
+            }
         /**
          * Obtiene una ruta por su ID (asíncrono, para compatibilidad con controladores)
          */
@@ -18,7 +26,21 @@ class RutaModel {
         this.rutasCache = null; // Cache local
         // Rutas y tarifas completas (tabla del usuario)
         this.rutasFallback = [
-            {id:8, codigo:'RUTA 08', nombre:'ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA', tarifa_25m3:970659, tarifa_37m3:997253, tarifa_45m3:997253},
+            {
+                id: 8,
+                codigo: 'RUTA 08',
+                nombre: 'ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA',
+                tarifa_25m3: 970659,
+                tarifa_37m3: 997253,
+                tarifa_45m3: 997253,
+                destinos: [
+                    { nombre: 'ALBAN', distancia: 0, porDefecto: true },
+                    { nombre: 'SASAIMA', distancia: 50 },
+                    { nombre: 'VILLETA', distancia: 100 },
+                    { nombre: 'GUADUAS', distancia: 150 },
+                    { nombre: 'HONDA', distancia: 200 }
+                ]
+            },
         ];
     }
 

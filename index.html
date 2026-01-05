@@ -10,7 +10,7 @@
 </head>
 
 <body>
-        <div id="toastMsg" style="display:none;position:fixed;top:32px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;z-index:9999;font-size:1.08em;box-shadow:0 2px 12px #0002;transition:opacity 0.3s;opacity:0;">Primero debes diligenciar la Configuración del Viaje.</div>
+    <div id="toastMsg" style="display:none;position:fixed;top:32px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;z-index:9999;font-size:1.08em;box-shadow:0 2px 12px #0002;">Primero debes diligenciar la Configuración del Viaje.</div>
     <div class="container">
         <header>
             <div class="header-content">
@@ -32,13 +32,13 @@
                     <!-- Fila 1: 3 columnas -->
                     <div class="form-group">
                         <label for="ruta">Ruta de Transporte:</label>
-                        <select id="ruta" onchange="cargarRuta();renderOcupacionVisual();">
+                        <select id="ruta" onchange="cargarRuta();">
                             <!-- Opciones generadas dinámicamente por JS -->
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="tipoCamionSeleccionado">Tipo de Camión:</label>
-                        <select id="tipoCamionSeleccionado" onchange="validarCapacidadCamion();renderOcupacionVisual();">
+                        <select id="tipoCamionSeleccionado" onchange="validarCapacidadCamion();">
                             <!-- Opciones generadas dinámicamente por JS -->
                         </select>
                     </div>
@@ -49,520 +49,190 @@
                     <!-- Fila 2: Info de ruta centrada -->
                     <div></div>
                     <div style="grid-column: 2 / 3; width: 100%; margin-top: 10px; justify-self: center; text-align:center;">
-                        <div id="infoRuta" class="info-box" style="display:none;">
-                            <p style="margin:0 0 4px 0;"><strong>Destinos disponibles:</strong> <span id="destinos"></span></p>
-                            <p style="margin:0;"><strong>Distancia:</strong> <span id="distancia"></span> km</p>
-                        </div>
+                        <div id="infoRuta" class="info-box" style="display:none;"></div>
                     </div>
                     <div></div>
                 </div>
             </form>
         </section>
 
-<script>
-// Definir tipos de camión para el select
-const TIPOS_CAMION = [
-    "Camión 25 m³",
-    "Camión 37 m³",
-    "Camión 45 m³"
-];
-// --- DATOS HARDCODEADOS DE RUTAS Y TARIFAS ---
-// ...existing code...
-
-// Autocompletar selects de ruta y tipo de camión al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    // Solo rellenar select de tipo de camión, el de rutas lo gestiona el controlador MVC
-    const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
-    if (tipoCamionSelect) {
-        tipoCamionSelect.innerHTML = '<option value="">-- Seleccione tipo de camión --</option>' +
-            TIPOS_CAMION.map((tipo, i) => `<option value="${[25,37,45][i]}">${tipo}</option>`).join('');
-    }
-});
-
-
-
-// Interceptar intento de abrir modal de pedido si no está habilitado
-document.addEventListener('DOMContentLoaded', function() {
-    const btnAgregarPedido = document.getElementById('btnAbrirModalPedido');
-    btnAgregarPedido.addEventListener('click', function(e) {
-        if (btnAgregarPedido.disabled) {
-            // Scroll a la sección de configuración del viaje (primer card con h2 correspondiente)
-            const seccion = Array.from(document.querySelectorAll('section.card')).find(card => card.querySelector('h2') && card.querySelector('h2').textContent.includes('Configuración del Viaje'));
-            if (seccion) {
-                seccion.scrollIntoView({behavior: 'smooth', block: 'center'});
-            }
-            // Mostrar mensaje flotante
-            const toast = document.getElementById('toastMsg');
-            if (toast) {
-                toast.style.display = 'block';
-                setTimeout(() => { toast.style.opacity = 1; }, 10);
-                setTimeout(() => {
-                    toast.style.opacity = 0;
-                    setTimeout(() => { toast.style.display = 'none'; }, 350);
-                }, 2600);
-            }
-            e.preventDefault();
-            return false;
-        }
-    }, true);
-});
-// --- Lógica de Pedidos y Productos ---
-let pedidos = [];
-let capacidadCamion = 25;
-let editandoPedido = false;
-let indiceEditando = null;
-let nuevoPedido = {
-    cliente: '',
-    numero: '',
-    canal: '',
-    productos: [crearProductoVacio()]
-};
-
-function crearProductoVacio() {
-    return { nombre: '', cantidad: 1, volumenUnitario: 0, pesoUnitario: 0, precioUnitario: 0, destino: '' };
-}
-
-function abrirModalPedido() {
-    editandoPedido = false;
-    indiceEditando = null;
-    nuevoPedido = {
-        cliente: '',
-        numero: '',
-        canal: '',
-        productos: [crearProductoVacio()]
-    };
-    renderProductosPedidoForm();
-    document.getElementById('pedidoCliente').value = '';
-    document.getElementById('pedidoNumero').value = '';
-    document.getElementById('pedidoCanal').value = '';
-    document.getElementById('modalPedidoTitulo').textContent = 'Agregar Pedido';
-        document.getElementById('modalPedido').classList.add('show');
-        document.getElementById('modalPedidoBackdrop').classList.add('show');
-        document.body.style.overflow = 'hidden';
-}
-
-function cerrarModalPedido() {
-    document.getElementById('modalPedido').style.display = 'none';
-        document.getElementById('modalPedido').classList.remove('show');
-        document.getElementById('modalPedidoBackdrop').classList.remove('show');
-        document.body.style.overflow = '';
-}
-
-    // Cerrar modal al hacer clic fuera
-    document.addEventListener('mousedown', function(e) {
-        const modal = document.getElementById('modalPedido');
-        const backdrop = document.getElementById('modalPedidoBackdrop');
-        if (modal.classList.contains('show') && backdrop.classList.contains('show')) {
-            if (!modal.querySelector('.modal-dialog').contains(e.target) && backdrop.contains(e.target)) {
-                cerrarModalPedido();
-            }
-        }
-    });
-
-    // Cerrar modal con Esc
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') cerrarModalPedido();
-    });
-function agregarProductoAlPedido() {
-    nuevoPedido.productos.push(crearProductoVacio());
-    renderProductosPedidoForm();
-}
-
-function eliminarProductoDelPedido(idx) {
-    if (nuevoPedido.productos.length > 1) {
-        nuevoPedido.productos.splice(idx, 1);
-        renderProductosPedidoForm();
-    }
-}
-
-function renderProductosPedidoForm() {
-    const cont = document.getElementById('productosPedidoForm');
-    cont.innerHTML = '';
-    // Opciones de productos de prueba
-    const productosPrueba = [
-        { nombre: 'LAM UT 200', cantidad: 100, volumenUnitario: 0.16, precioUnitario: 96223, destino: 'Destino 1' },
-        { nombre: 'COL MONARCA', cantidad: 6, volumenUnitario: 0.53, precioUnitario: 605406, destino: 'Destino 2' },
-        { nombre: 'COL CONFORT PREMIUM', cantidad: 5, volumenUnitario: 0.90, precioUnitario: 734200, destino: 'Destino 3' }
-    ];
-    nuevoPedido.productos.forEach((prod, idx) => {
-        const div = document.createElement('div');
-        div.style.display = 'grid';
-        div.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr auto';
-        div.style.gap = '10px';
-        div.style.marginBottom = '8px';
-        div.style.alignItems = 'end';
-        div.innerHTML = `
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Producto:</label>
-                <select onchange="if(this.value){cargarProductoPrueba(${idx}, this.value);}else{actualizarProdCampo(${idx}, 'nombre', '');actualizarProdCampo(${idx}, 'cantidad', 1);actualizarProdCampo(${idx}, 'volumenUnitario', 0);actualizarProdCampo(${idx}, 'precioUnitario', 0);actualizarProdCampo(${idx}, 'destino', '');renderProductosPedidoForm();}" style="width:100%;margin-bottom:4px;">
-                    <option value="">-- Manual / Nuevo --</option>
-                    <option value="0" ${prod.nombre==='LAM UT 200'?'selected':''}>LAM UT 200</option>
-                    <option value="1" ${prod.nombre==='COL MONARCA'?'selected':''}>COL MONARCA</option>
-                    <option value="2" ${prod.nombre==='COL CONFORT PREMIUM'?'selected':''}>COL CONFORT PREMIUM</option>
+        <!-- Card separada para el botón Nuevo Pedido -->
+        <section class="card" style="margin-bottom:18px;">
+            <h2>Asignacion de pedidos o picking</h2>
+            <div style="margin-top:12px;margin-bottom:8px;color:#334155;font-size:0.98em;">
+                        <strong>Buscar pedido (origen de datos: SAP, Servicios GE, Espumred, etc):</strong> Utiliza esta barra para buscar y traer automáticamente los datos del pedido desde el origen de datos seleccionado (en el futuro, la integración llenará el formulario con la información real del sistema).
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+                <input type="text" id="busquedaSAP" class="form-control" placeholder="Buscar pedido por código SAP..." style="max-width:260px;">
+                <select id="tipoBusquedaSAP" class="form-control" style="max-width:180px;">
+                    <option value="codigo">Código SAP</option>
+                    <option value="cliente">Cliente</option>
+                    <option value="direccion">Dirección</option>
                 </select>
-                <input type="text" value="${prod.nombre}" placeholder="Nombre producto" onchange="actualizarProdCampo(${idx}, 'nombre', this.value)">
+                <button type="button" class="btn btn-primary btn-sm" id="btnBuscarSAP">Buscar</button>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Cantidad:</label>
-                <input type="number" min="1" value="${prod.cantidad}" onchange="actualizarProdCampo(${idx}, 'cantidad', this.value)">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Vol. Unit. (m³):</label>
-                <input type="number" step="0.001" value="${prod.volumenUnitario}" onchange="actualizarProdCampo(${idx}, 'volumenUnitario', this.value)">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Precio Unit. ($):</label>
-                <input type="number" step="100" value="${prod.precioUnitario}" onchange="actualizarProdCampo(${idx}, 'precioUnitario', this.value)">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Destino:</label>
-                <input type="text" value="${prod.destino}" onchange="actualizarProdCampo(${idx}, 'destino', this.value)">
-            </div>
-            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProductoDelPedido(${idx})">X</button>
-        `;
-        cont.appendChild(div);
-    });
-    // Función global para cargar producto de prueba
-    window.cargarProductoPrueba = function(idx, val) {
-        if (productosPrueba[val]) {
-            Object.keys(productosPrueba[val]).forEach(k => {
-                actualizarProdCampo(idx, k, productosPrueba[val][k]);
-            });
-            renderProductosPedidoForm();
-        }
-    }
-}
-
-function actualizarProdCampo(idx, campo, valor) {
-    if (campo === 'cantidad' || campo === 'volumenUnitario' || campo === 'pesoUnitario' || campo === 'precioUnitario') {
-        valor = parseFloat(valor) || 0;
-    }
-    nuevoPedido.productos[idx][campo] = valor;
-}
-
-function guardarPedido() {
-    // Validaciones básicas
-    const cliente = document.getElementById('pedidoCliente').value.trim();
-    const numero = document.getElementById('pedidoNumero').value.trim();
-    const canal = document.getElementById('pedidoCanal').value;
-    if (!cliente || !numero || !canal) {
-        mostrarAlerta('Completa todos los campos obligatorios del pedido.');
-        return;
-    }
-    if (nuevoPedido.productos.length === 0 || nuevoPedido.productos.some(p => !p.nombre || !p.destino)) {
-        mostrarAlerta('Completa los datos de todos los productos y su destino.');
-        return;
-    }
-    const volumenPedido = nuevoPedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.volumenUnitario), 0);
-    const volumenOcupado = pedidos.reduce((acc, ped) => acc + ped.productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0), 0);
-    let volumenFinal = volumenOcupado + volumenPedido;
-    if (editandoPedido) {
-        const anterior = pedidos[indiceEditando].productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0);
-        volumenFinal = volumenOcupado - anterior + volumenPedido;
-    }
-    if (volumenFinal > capacidadCamion) {
-        mostrarAlerta('¡Capacidad del camión superada!');
-        return;
-    }
-    const pedidoObj = {
-        cliente,
-        numero,
-        canal,
-        productos: JSON.parse(JSON.stringify(nuevoPedido.productos))
-    };
-    if (editandoPedido) {
-        pedidos[indiceEditando] = pedidoObj;
-    } else {
-        pedidos.push(pedidoObj);
-    }
-    cerrarModalPedido();
-    mostrarAlerta('');
-    renderPedidosResumen();
-    renderOcupacionVisual();
-}
-
-function mostrarAlerta(msg) {
-    const alerta = document.getElementById('alertaCapacidad');
-    if (msg) {
-        alerta.textContent = msg;
-        alerta.style.display = 'block';
-    } else {
-        alerta.style.display = 'none';
-    }
-}
-
-function renderPedidosResumen() {
-    const cont = document.getElementById('pedidosResumenContainer');
-    if (pedidos.length === 0) {
-        cont.innerHTML = '';
-        return;
-    }
-    let html = `<h3 style=\"margin: 0 0 15px 0; font-size: 0.95em; color: #334155;\">Pedidos en el Camión</h3>`;
-    html += `<div class='acordeon-pedidos'>`;
-    pedidos.forEach((pedido, idx) => {
-        const volTotal = pedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.volumenUnitario), 0);
-        const subtotal = pedido.productos.reduce((acc, prod) => acc + (prod.cantidad * prod.precioUnitario), 0);
-        html += `
-        <div class='acordeon-item' style="margin-bottom:8px;border-radius:8px;overflow:hidden;">
-            <div class='acordeon-header' style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 18px;background:#f8fafc;font-weight:600;" onclick="toggleAcordeonPedido(${idx})">
-                <span><span style='color:#1e40af;'>${pedido.cliente}</span> | Pedido: <b>${pedido.numero}</b> | Canal: <span style='color:#64748b;'>${pedido.canal}</span></span>
-                <span style='font-size:0.95em;color:#fb923c;'>Vol: ${volTotal.toFixed(2)} m³ | $${subtotal.toLocaleString()}</span>
-                <span id='acordeon-icon-${idx}' style='margin-left:12px;font-size:1.2em;'>▼</span>
-            </div>
-            <div class='acordeon-body' id='acordeon-body-${idx}' style='display:none;background:#fff;padding:12px 24px 12px 24px;'>
-                <div style='overflow-x:auto;'>
-                <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
-                    <thead>
-                        <tr style='background:#f1f5fa;'>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Producto</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Cantidad</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Vol. Unit. (m³)</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Vol. Total (m³)</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Precio Unit.</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Valor Total</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Destino</th>
-                            <th style='padding:6px 8px;border:1px solid #e2e8f0;'>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${pedido.productos.map((prod, pidx) => {
-                            const volTotal = (prod.cantidad * prod.volumenUnitario).toFixed(2);
-                            const valorTotal = (prod.cantidad * prod.precioUnitario).toLocaleString();
-                            return `
-                            <tr>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.nombre}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.cantidad}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.volumenUnitario}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${volTotal}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.precioUnitario}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>$${valorTotal}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>${prod.destino}</td>
-                                <td style='padding:6px 8px;border:1px solid #e2e8f0;'>
-                                    <button class='btn btn-warning btn-sm' onclick='editarPedido(${idx});setTimeout(()=>{document.querySelectorAll("#productosPedidoForm input")[0].focus();},200)'>Editar</button>
-                                    <button class='btn btn-danger btn-sm' onclick='eliminarProductoDesdeAcordeon(${idx},${pidx})'>Eliminar</button>
-                                </td>
-                            </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-                </div>
-                <div style='margin-top:8px;display:flex;gap:8px;'>
-                    <button class='btn btn-secondary btn-sm' onclick='editarPedido(${idx});setTimeout(()=>{window.agregarProductoAlPedido();},200)'>Agregar otro producto</button>
-                    <button class='btn btn-warning btn-sm' onclick='editarPedido(${idx})'>Editar Pedido</button>
-                    <button class='btn btn-danger btn-sm' onclick='eliminarPedido(${idx})'>Eliminar Pedido</button>
-                </div>
-            </div>
-        </div>`;
-    // Eliminar producto desde el acordeón
-    window.eliminarProductoDesdeAcordeon = function(pedidoIdx, prodIdx) {
-        if (pedidos[pedidoIdx].productos.length > 1) {
-            pedidos[pedidoIdx].productos.splice(prodIdx, 1);
-            renderPedidosResumen();
-            renderOcupacionVisual();
-        }
-    }
-    });
-    html += `</div>`;
-    cont.innerHTML = html;
-    // Cerrar todos los acordeones menos el último agregado
-    pedidos.forEach((_, i) => {
-        document.getElementById('acordeon-body-' + i).style.display = 'none';
-        document.getElementById('acordeon-icon-' + i).textContent = '▼';
-    });
-// Eliminar llave extra aquí
-// Función global para el acordeón
-window.toggleAcordeonPedido = function(idx) {
-    const body = document.getElementById('acordeon-body-' + idx);
-    const icon = document.getElementById('acordeon-icon-' + idx);
-    if (body.style.display === 'none') {
-        body.style.display = 'block';
-        icon.textContent = '▲';
-    } else {
-        body.style.display = 'none';
-        icon.textContent = '▼';
-    }
-}
-function editarPedido(idx) {
-    editandoPedido = true;
-    indiceEditando = idx;
-    // Copiar datos del pedido seleccionado
-    const pedido = pedidos[idx];
-    nuevoPedido = {
-        cliente: pedido.cliente,
-        numero: pedido.numero,
-        canal: pedido.canal,
-        productos: JSON.parse(JSON.stringify(pedido.productos))
-    };
-    renderProductosPedidoForm();
-    document.getElementById('pedidoCliente').value = pedido.cliente;
-    document.getElementById('pedidoNumero').value = pedido.numero;
-    document.getElementById('pedidoCanal').value = pedido.canal;
-    document.getElementById('modalPedidoTitulo').textContent = 'Editar Pedido';
-    document.getElementById('modalPedido').classList.add('show');
-    document.getElementById('modalPedidoBackdrop').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-}
-
-function renderOcupacionVisual() {
-    const volumenOcupado = pedidos.reduce((acc, ped) => acc + ped.productos.reduce((a, prod) => a + (prod.cantidad * prod.volumenUnitario), 0), 0);
-    const porcentajeOcupacion = ((volumenOcupado / capacidadCamion) * 100).toFixed(2);
-    const rutaSelect = document.getElementById('ruta');
-    const tipoCamionSelect = document.getElementById('tipoCamionSeleccionado');
-    const rutaId = rutaSelect && rutaSelect.value ? parseInt(rutaSelect.value) : null;
-    let tipoCamion = tipoCamionSelect && tipoCamionSelect.value ? tipoCamionSelect.value : null;
-    // Asegurar que el tipo de camión sea número
-    if (tipoCamion !== null) tipoCamion = Number(tipoCamion);
-    let capacidadTexto = '';
-    if (tipoCamion) {
-        capacidadTexto = `<span style='font-size:0.95em;display:block;color:#64748b;margin-top:2px;'>Capacidad: ${tipoCamion} m³</span>`;
-    }
-    let nombreRuta = '';
-    if (rutaId && window.appController && window.appController.rutaModel) {
-        const rutaObj = window.appController.rutaModel.obtenerRutaPorIdSync(rutaId);
-        if (rutaObj && rutaObj.nombre) {
-            nombreRuta = `<span style='font-size:0.93em;display:block;color:#334155;margin-top:2px;'>Ruta: <b>${rutaObj.nombre}</b></span>`;
-        }
-    }
-    // Array de rutas con tarifas para jugar con el valor
-    const rutasEjemplo = [
-        {
-            id: 8,
-            nombre: 'ALBAN - SASAIMA - VILLETA - GUADUAS - HONDA',
-            tarifas: {
-                25: 970659,
-                37: 997253,
-                45: 997253
-            }
-        }
-    ];
-    let valorFlete = `<span style='font-size:1em;display:block;color:#2563eb;margin-top:2px;'><b>Valor Flete:</b> `;
-    let rutaEjemplo = rutasEjemplo.find(r => r.id === rutaId);
-    if (rutaEjemplo && tipoCamion && rutaEjemplo.tarifas[tipoCamion]) {
-        valorFlete += `$${rutaEjemplo.tarifas[tipoCamion].toLocaleString('es-CO')}`;
-    } else {
-        valorFlete += '--';
-    }
-    valorFlete += `</span>`;
-    document.getElementById('porcentajeOcupacion').innerHTML = `<span>${porcentajeOcupacion}%</span>` + capacidadTexto + nombreRuta + `<div style='margin-top:8px;'>${valorFlete}</div>`;
-    const visual = document.getElementById('ocupacionVisual');
-    // El camión siempre centrado dentro de la barra
-    const barraWidth = 120; // px
-    visual.innerHTML = `<div style='width:${barraWidth}px;height:60px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 2px 8px #0001;border:2px solid #fb923c;'>
-        <div style='width:${porcentajeOcupacion}%;height:100%;background:${porcentajeOcupacion<80?'#60a5fa':(porcentajeOcupacion<100?'#facc15':'#ef4444')};position:absolute;left:0;top:0;'></div>
-        <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;">
-            <span style='font-size:2em;line-height:1;'>🚚</span>
-        </div>
-    </div>
-    <span style='font-size:1.1em;color:#334155;'>${volumenOcupado.toFixed(2)} m³ / ${capacidadCamion} m³</span>`;
-}
-
-function eliminarPedido(idx) {
-    pedidos.splice(idx, 1);
-    renderPedidosResumen();
-    renderOcupacionVisual();
-}
-
-// Inicialización segura tras cargar el DOM
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('btnAbrirModalPedido')) document.getElementById('btnAbrirModalPedido').onclick = abrirModalPedido;
-    if (document.getElementById('btnCerrarModalPedido')) document.getElementById('btnCerrarModalPedido').onclick = cerrarModalPedido;
-    if (document.getElementById('btnCancelarModalPedido')) document.getElementById('btnCancelarModalPedido').onclick = cerrarModalPedido;
-    if (document.getElementById('btnAgregarProductoPedido')) document.getElementById('btnAgregarProductoPedido').onclick = agregarProductoAlPedido;
-    if (document.getElementById('btnGuardarPedido')) document.getElementById('btnGuardarPedido').onclick = guardarPedido;
-    renderPedidosResumen();
-    renderOcupacionVisual();
-});
-
-
-         // --- Validación de Configuración del Viaje ---
-            function validarConfiguracionViajeCompleta() {
-                const ruta = document.getElementById('ruta').value;
-                const camion = document.getElementById('tipoCamionSeleccionado').value;
-                const fecha = document.getElementById('fechaDespacho').value;
-                const btnAgregarPedido = document.getElementById('btnAbrirModalPedido');
-                const bloqueoMsg = document.getElementById('bloqueoCargaMsg');
-                let habilitado = ruta && camion && fecha;
-                btnAgregarPedido.disabled = !habilitado;
-                if (bloqueoMsg) bloqueoMsg.style.display = habilitado ? 'none' : 'block';
-                // Opcional: deshabilitar también el resumen de pedidos y otros campos si se requiere
-            }
-            document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('ruta').addEventListener('change', validarConfiguracionViajeCompleta);
-                document.getElementById('tipoCamionSeleccionado').addEventListener('change', validarConfiguracionViajeCompleta);
-                document.getElementById('fechaDespacho').addEventListener('change', validarConfiguracionViajeCompleta);
-                validarConfiguracionViajeCompleta();
-            });
-
-</script>
+            <button type="button" class="btn btn-primary" id="btnAbrirModalPedidoPicking">Agregar pedido manualmente</button>
+        </section>
 
         <!-- Módulo 2: Agregar Pedidos/Productos a la Carga -->
         <section class="card" id="carga-camion-section">
-                        <div id="modalPedidoBackdrop" class="modal-backdrop"></div>
-            <h2>📦 Carga del Camión</h2>
+            <!-- Sección restaurada: Carga del Camión -->
+            <h2>Carga del Camión</h2>
             <div style="background: #eff6ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 3px solid #2563eb;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 18px;">
                     <div style="text-align:left;">
-                        <p style="color: #1e40af; font-size: 0.95em; margin: 0; font-weight: 600;">Agregar pedidos al camión</p>
-                        <p style="color: #64748b; font-size: 0.85em; margin: 5px 0 0 0;">El sistema validará que no exceda la capacidad seleccionada</p>
+                        <p style="color: #1e40af; font-size: 0.95em; margin: 0; font-weight: 600;">Agregar pedidos al camión
+                        </p>
+                        <p style="color: #64748b; font-size: 0.85em; margin: 5px 0 0 0;">El sistema validará que no
+                        exceda la capacidad seleccionada</p>
                     </div>
                     <div style="justify-self:center;">
                         <div style="font-size: 0.85em; color: #64748b; text-align:center;">Ocupación</div>
-                        <div id="ocupacionVisual" style="width:120px;height:60px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 2px 8px #0001;border:2px solid #fb923c;display:inline-block;margin-top:4px;"></div>
+                        <div id="ocupacionVisual"
+                            style="width:120px;height:60px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 2px 8px #0001;border:2px solid #fb923c;display:inline-block;margin-top:4px;">
+                        </div>
                     </div>
                     <div style="text-align:right;">
-                        <div id="porcentajeOcupacion" style="font-size: 1.3em; font-weight: bold; color: #2563eb; min-width: 60px;">0%</div>
+                        <div id="porcentajeOcupacion"
+                            style="font-size: 1.3em; font-weight: bold; color: #2563eb; min-width: 60px;">0%</div>
                     </div>
                 </div>
             </div>
             <div id="alertaCapacidad" class="alert alert-warning" style="display:none; margin-bottom: 15px;"></div>
-            <button class="btn btn-primary mb-3" id="btnAbrirModalPedido" type="button" disabled>Agregar Pedido</button>
-            <!-- Modal Pedido -->
-            <div id="modalPedido" class="modal" style="display:none;">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalPedidoTitulo">Agregar Pedido</h5>
-                            <button type="button" class="btn-close" id="btnCerrarModalPedido"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label>Cliente:</label>
-                                    <input type="text" id="pedidoCliente" placeholder="Nombre cliente">
+            <!-- Modal para el formulario de pedido picking SAP -->
+            <div id="modalPedidoPickingSAP"
+                class="modal"
+                style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:9999;align-items:center;justify-content:center;">
+                <div
+                    style="background:#fff;padding:32px 24px;border-radius:12px;max-width:900px;width:96vw;box-shadow:0 4px 32px #0003;position:relative;overflow:auto;max-height:90vh;">
+                    <h2 style="margin-top:0;color:#1e40af;font-size:1.2em;">Nuevo Pedido (Picking SAP)</h2>
+                    <div style="margin-bottom:12px;color:#334155;font-size:0.98em;">
+                    </div>
+                    <form id="formPedidoPicking"
+                        style="background:none;padding:0;border-radius:0;margin-bottom:0;box-shadow:none;">
+                        <!-- Modal para agregar/editar producto -->
+                        <div id="modalProductoPicking"
+                            class="modal"
+                            style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:9999;align-items:center;justify-content:center;">
+                            <div
+                                style="background:#fff;padding:32px 24px;border-radius:12px;max-width:420px;width:90vw;box-shadow:0 4px 32px #0003;position:relative;">
+                                <h3 id="modalProductoTitulo" style="margin-top:0;">Agregar Producto</h3>
+                                <div class="form-group">
+                                    <label>Código:</label>
+                                    <input type="text" id="modalProdCodigo" class="form-control" placeholder="Código SAP">
                                 </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label>Número de Pedido:</label>
-                                    <input type="text" id="pedidoNumero" placeholder="N° Pedido">
+                                <div class="form-group">
+                                    <label>Descripción:</label>
+                                    <input type="text" id="modalProdDescripcion" class="form-control" placeholder="Descripción">
                                 </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label>Canal:</label>
-                                    <select id="pedidoCanal">
-                                        <option value="">Seleccione canal</option>
-                                        <option>Propio</option>
-                                        <option>Especializado</option>
-                                        <option>Tradicional</option>
-                                        <option>Industrial</option>
-                                        <option>Moderno</option>
-                                    </select>
+                                <div class="form-group">
+                                    <label>Lote:</label>
+                                    <input type="text" id="modalProdLote" class="form-control" placeholder="Lote">
+                                </div>
+                                <div class="form-group">
+                                    <label>Unidad:</label>
+                                    <input type="text" id="modalProdUnidad" class="form-control" value="UN">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cantidad:</label>
+                                    <input type="number" id="modalProdCantidad" class="form-control" min="1" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Picking:</label>
+                                    <input type="number" id="modalProdPicking" class="form-control" min="0" value="0">
+                                </div>
+                                <div style="margin-top:18px;display:flex;gap:12px;justify-content:flex-end;">
+                                    <button class="btn btn-secondary" id="modalProdCancelar">Cancelar</button>
+                                    <button class="btn btn-success" id="modalProdGuardar">Guardar</button>
                                 </div>
                             </div>
-                            <h4 style="font-size: 0.93em; color: #64748b; margin: 10px 0 5px 0;">Productos del Pedido</h4>
-                            <div id="productosPedidoForm"></div>
-                            <button type="button" class="btn btn-secondary btn-sm" id="btnAgregarProductoPedido" style="margin-top: 5px;">Agregar otro producto</button>
                         </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" id="btnCancelarModalPedido" style="min-width:120px;">Cancelar</button>
-                            <button class="btn btn-success" id="btnGuardarPedido" style="min-width:160px;font-weight:bold;">Registrar Pedido</button>
+                        <div style="margin-bottom:8px;color:#334155;font-size:0.98em;">
+                            <strong>Aqui se podran agregar lo pedidos de manera simulada de manera manual:</strong> 
                         </div>
-                    </div>
+                        <!-- Barra de búsqueda y selector de tipo de búsqueda -->
+               
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;">
+                            <div class="form-group">
+                                <label>N° Pedido SAP:</label>
+                                <input type="text" id="pickingPedido" class="form-control" placeholder="Ej: 729181">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha emisión:</label>
+                                <input type="date" id="pickingFecha" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Cliente/Destinatario:</label>
+                                <input type="text" id="pickingCliente" class="form-control"
+                                    placeholder="Ej: HOYOS HOYOS DAGOBERTO">
+                            </div>
+                            <div class="form-group">
+                                <label>NIT/CC:</label>
+                                <input type="text" id="pickingNIT" class="form-control" placeholder="Ej: 83028606">
+                            </div>
+                            <div class="form-group">
+                                <label>Dirección de entrega:</label>
+                                <input type="text" id="pickingDireccion" class="form-control"
+                                    placeholder="Ej: CR 66 A # 92 BR PRADERA">
+                            </div>
+                            <div class="form-group">
+                                <label>Ciudad:</label>
+                                <input type="text" id="pickingCiudad" class="form-control" placeholder="Ej: BOGOTA">
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;">
+                            <div class="form-group">
+                                <label>Zona de transporte:</label>
+                                <input type="text" id="pickingZona" class="form-control" placeholder="Ej: BOGOTA">
+                            </div>
+                            <div class="form-group">
+                                <label>N° Transporte:</label>
+                                <input type="text" id="pickingTransporte" class="form-control" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label>Ruta:</label>
+                                <input type="text" id="pickingRuta" class="form-control" placeholder="">
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <label>Observaciones:</label>
+                            <input type="text" id="pickingObservaciones" class="form-control"
+                                placeholder="Observaciones generales">
+                        </div>
+                        <div style="margin-top:18px;">
+                            <label style="font-weight:600;">Productos del Pedido</label>
+                            <table id="tablaProductosPicking" style="width:100%;margin-top:8px;border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#e0e7ef;">
+                                        <th>Código</th>
+                                        <th>Descripción</th>
+                                        <th>Lote</th>
+                                        <th>Unidad</th>
+                                        <th>Cantidad</th>
+                                        <th>Picking</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyProductosPicking">
+                                    <!-- Filas dinámicas -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnAgregarProductoPicking"
+                                style="margin-top:8px;">Agregar producto</button>
+                        </div>
+                        <div style="margin-top:18px;display:flex;gap:18px;align-items:center;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Costo SAP (simulado):</label>
+                                <input type="text" id="pickingCostoSAP" class="form-control"
+                                    value="Pendiente de integración" readonly style="background:#f1f5f9;color:#64748b;">
+                            </div>
+                            <button type="button" class="btn btn-success" id="btnGuardarPicking">Guardar Pedido</button>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-secondary" id="btnCerrarModalPedidoPicking"
+                        style="position:absolute;top:12px;right:18px;font-size:1.3em;">&times;</button>
                 </div>
             </div>
-            <div id="pedidosResumenContainer" style="margin-top: 20px;"></div>
-            <div id="bloqueoCargaMsg" class="alert alert-warning" style="display:none; margin-top: 10px;">Primero complete la Configuración del Viaje para habilitar la carga del camión.</div>
-   
-
         </section>
 
         <!-- Módulo 3: Resumen y Cálculo del Despacho -->
@@ -575,23 +245,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="summary-item"><span id="indicadorDesperdicio">Capacidad desperdiciada (%)</span></div>
                     <div class="summary-item"><span id="indicadorVolumen">Volumen transportado (m³)</span></div>
                     <div class="summary-item"><span id="indicadorTipoCamion">Tipo de camión utilizado</span></div>
-                    <div class="summary-item"><span id="indicadorNumClientes">Número de clientes por despacho</span></div>
+                    <div class="summary-item"><span id="indicadorNumClientes">Número de clientes por despacho</span>
+                    </div>
                 </div>
                 <h3 style="margin-top:24px;">Indicadores Económicos / Financieros</h3>
                 <div class="summary-grid">
                     <div class="summary-item"><span id="indicadorFleteVenta">% Flete sobre venta</span></div>
                     <div class="summary-item"><span id="indicadorFleteCliente">Costo del flete por cliente</span></div>
-                    <div class="summary-item"><span id="indicadorFleteProducto">Costo del flete por producto</span></div>
+                    <div class="summary-item"><span id="indicadorFleteProducto">Costo del flete por producto</span>
+                    </div>
                     <div class="summary-item"><span id="indicadorVentaSinIVA">Valor total de venta sin IVA</span></div>
                     <div class="summary-item"><span id="indicadorCostoProductos">Costo total de productos</span></div>
                 </div>
             </div>
             <!-- Detalle por Cliente -->
             <div id="detalleClientes" style="margin-top: 20px;">
-                <h3 style="color: #1a3a52; margin-bottom: 12px; font-size: 1em; font-weight: 600;">Detalle por Cliente</h3>
+                <h3 style="color: #1a3a52; margin-bottom: 12px; font-size: 1em; font-weight: 600;">Detalle por Cliente
+                </h3>
                 <div id="detalleClientesContainer"></div>
             </div>
-            <button onclick="calcularDespacho()" class="btn-primary" style="margin-top: 15px;">Calcular Despacho</button>
+            <button onclick="calcularDespacho()" class="btn-primary" style="margin-top: 15px;">Calcular
+                Despacho</button>
         </section>
 
         <!-- Módulo 4: Reporte Final Detallado -->
@@ -709,8 +383,10 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
+
     <!-- Modelos -->
     <script src="models/RutaModel.js"></script>
+    <script src="models/DespachoModel.js"></script>
 
     <!-- Base de Datos (opcional - si existe BD) -->
     <script src="config/database.js"></script>
@@ -727,9 +403,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Aplicación Principal -->
     <script src="assets/js/app.js"></script>
-    
+    <script src="assets/js/main.js"></script>
+
     <!-- Manejador de Destinos -->
     <script src="assets/js/destinos-handler.js"></script>
+
+    <!-- Lógica del nuevo modal de pedido -->
+    <script src="assets/js/nuevo-modal-pedido.js"></script>
+    <script>
+    // Lógica para abrir/cerrar el modal de pedido picking SAP
+    const btnAbrirModalPedidoPicking = document.getElementById('btnAbrirModalPedidoPicking');
+    const modalPedidoPickingSAP = document.getElementById('modalPedidoPickingSAP');
+    const btnCerrarModalPedidoPicking = document.getElementById('btnCerrarModalPedidoPicking');
+    if(btnAbrirModalPedidoPicking && modalPedidoPickingSAP && btnCerrarModalPedidoPicking) {
+        btnAbrirModalPedidoPicking.onclick = () => { modalPedidoPickingSAP.style.display = 'flex'; };
+        btnCerrarModalPedidoPicking.onclick = () => { modalPedidoPickingSAP.style.display = 'none'; };
+        modalPedidoPickingSAP.onclick = (e) => { if(e.target === modalPedidoPickingSAP) modalPedidoPickingSAP.style.display = 'none'; };
+    }
+    </script>
 </body>
 
 </html>

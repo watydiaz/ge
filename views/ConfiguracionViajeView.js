@@ -4,6 +4,19 @@
  */
 
 class ConfiguracionViajeView {
+
+        /**
+         * Renderiza el select de tipo de camión
+         */
+        renderizarTiposCamion(tipos) {
+            this.selectTipoCamion.innerHTML = '<option value="">-- Seleccione tipo de camión --</option>';
+            tipos.forEach((tipo, i) => {
+                const option = document.createElement('option');
+                option.value = [25, 37, 45][i];
+                option.textContent = tipo;
+                this.selectTipoCamion.appendChild(option);
+            });
+        }
     constructor() {
         this.selectRuta = document.getElementById('ruta');
         this.infoRuta = document.getElementById('infoRuta');
@@ -39,19 +52,11 @@ class ConfiguracionViajeView {
     renderizarInfoRuta(ruta) {
         if (!ruta) {
             this.infoRuta.style.display = 'none';
+            this.infoRuta.innerHTML = '';
             return;
         }
-
-        const destinosNombres = ruta.destinos.map(d => {
-            const tag = d.porDefecto ? '' : ' (Nuevo)';
-            return d.nombre + tag;
-        }).join(', ');
-
-        this.destinosSpan.textContent = destinosNombres;
-        
-        const distanciaMax = Math.max(...ruta.destinos.map(d => d.distancia));
-        this.distanciaSpan.textContent = `hasta ${distanciaMax}`;
-        
+        const distanciaMax = Math.max(...(ruta.destinos || []).map(d => d.distancia));
+        this.infoRuta.innerHTML = `<span style="font-size:1.1em;color:#1e40af;font-weight:600;">${ruta.nombre}</span><br><span style="color:#64748b;">Distancia máxima: ${distanciaMax} km</span>`;
         this.infoRuta.style.display = 'block';
     }
 
@@ -61,14 +66,16 @@ class ConfiguracionViajeView {
     renderizarDestinos(destinos) {
         if (!this.selectDestinoCliente) return;
         this.selectDestinoCliente.innerHTML = '<option value="">-- Seleccione destino --</option>';
-        if (!destinos || destinos.length === 0) return;
-        destinos.forEach(destino => {
-            const option = document.createElement('option');
-            option.value = JSON.stringify(destino);
-            const etiqueta = destino.porDefecto ? '' : ' *';
-            option.textContent = `${destino.nombre} (${destino.distancia} km)${etiqueta}`;
-            this.selectDestinoCliente.appendChild(option);
-        });
+        // Aquí puedes agregar la lógica para renderizar los destinos si es necesario
+    }
+
+    /**
+     * Renderiza la información de la ruta seleccionada
+     * (Actualmente oculta la info por requerimiento)
+     */
+    renderizarInfoRuta(ruta) {
+        this.infoRuta.style.display = 'none';
+        this.infoRuta.innerHTML = '';
     }
 
     /**

@@ -10,9 +10,16 @@ class AppController {
 
         // Inicializar Modelos (sin BD por ahora)
         this.rutaModel = new RutaModel();
+        this.despachoModel = new DespachoModel();
 
         // Inicializar Vistas
         this.configuracionView = new ConfiguracionViajeView();
+        // Renderizar tipos de camión al inicializar la vista
+        this.configuracionView.renderizarTiposCamion([
+            "Camión 25 m³",
+            "Camión 37 m³",
+            "Camión 45 m³"
+        ]);
         this.clientesView = new ClientesView();
         this.resumenView = new ResumenView();
         this.reportesView = new ReportesView();
@@ -32,7 +39,7 @@ class AppController {
 
             // Reconectar modelos con BD
             this.rutaModel = new RutaModel(this.db);
-            this.calculoModel = new CalculoModel(this.rutaModel, this.camionModel);
+            // this.calculoModel = new CalculoModel(this.rutaModel, this.camionModel); // Eliminado: no se usa en el modelo visual
 
             console.log('Conectado a base de datos IndexedDB');
             return true;

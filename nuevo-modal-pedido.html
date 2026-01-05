@@ -1,0 +1,58 @@
+<!-- Modal de Pedido NUEVO (simple y funcional) -->
+<div id="nuevoModalPedido" class="modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:32px 24px;border-radius:12px;max-width:420px;width:90vw;box-shadow:0 4px 32px #0003;position:relative;">
+    <h3 style="margin-top:0;">Nuevo Pedido</h3>
+    <div class="form-group">
+      <label>Cliente:</label>
+      <input type="text" id="nuevoPedidoCliente" class="form-control" placeholder="Nombre cliente">
+    </div>
+    <div class="form-group">
+      <label>Número de Pedido:</label>
+      <input type="text" id="nuevoPedidoNumero" class="form-control" placeholder="N° Pedido">
+    </div>
+    <div class="form-group">
+      <label>Producto:</label>
+      <input type="text" id="nuevoPedidoProducto" class="form-control" placeholder="Producto">
+    </div>
+    <div class="form-group">
+      <label>Cantidad:</label>
+      <input type="number" id="nuevoPedidoCantidad" class="form-control" min="1" value="1">
+    </div>
+    <div style="margin-top:18px;display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-secondary" id="nuevoPedidoCancelar">Cancelar</button>
+      <button class="btn btn-success" id="nuevoPedidoGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+<script>
+// Lógica para el nuevo modal de pedido
+(function(){
+  const btnShow = document.createElement('button');
+  btnShow.textContent = 'Agregar Pedido';
+  btnShow.className = 'btn btn-primary mb-3';
+  btnShow.style.marginBottom = '16px';
+  document.getElementById('carga-camion-section').insertBefore(btnShow, document.getElementById('alertaCapacidad').nextSibling);
+
+  const modal = document.getElementById('nuevoModalPedido');
+  const cancelar = document.getElementById('nuevoPedidoCancelar');
+  const guardar = document.getElementById('nuevoPedidoGuardar');
+
+  btnShow.onclick = () => { modal.style.display = 'flex'; };
+  cancelar.onclick = () => { modal.style.display = 'none'; };
+  guardar.onclick = () => {
+    const cliente = document.getElementById('nuevoPedidoCliente').value.trim();
+    const numero = document.getElementById('nuevoPedidoNumero').value.trim();
+    const producto = document.getElementById('nuevoPedidoProducto').value.trim();
+    const cantidad = parseInt(document.getElementById('nuevoPedidoCantidad').value);
+    if (!cliente || !numero || !producto || !cantidad) {
+      alert('Completa todos los campos');
+      return;
+    }
+    // Aquí puedes hacer lo que quieras con los datos (mostrar, guardar, etc)
+    alert('Pedido guardado:\nCliente: '+cliente+'\nPedido: '+numero+'\nProducto: '+producto+'\nCantidad: '+cantidad);
+    modal.style.display = 'none';
+  };
+  // Cerrar modal al hacer clic fuera
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+})();
+</script>

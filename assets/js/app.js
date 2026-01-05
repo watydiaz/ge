@@ -36,9 +36,6 @@ function agregarDestinoARuta() {
     appController.agregarDestinoARuta();
 }
 
-function agregarPedido() {
-    appController.agregarPedido();
-}
 
 function eliminarPedido(pedidoId) {
     appController.eliminarPedido(pedidoId);
