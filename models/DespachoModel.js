@@ -1,3 +1,14 @@
+/**
+ * Modelo de Despacho
+ * Gestiona el estado y lógica de negocio del despacho
+ * Funciona como calculadora de fletes
+ */
+
+class DespachoModel {
+    constructor() {
+        this.reset();
+    }
+
     /**
      * Obtiene la tarifa de flete según la ruta y el tipo de camión seleccionado
      */
@@ -14,16 +25,6 @@
             return this.rutaModel.obtenerTarifaPorTipoCamion(this.ruta.id, this.tipoCamionSeleccionado) || 0;
         }
         return 0;
-    }
-/**
- * Modelo de Despacho
- * Gestiona el estado y lógica de negocio del despacho
- * Funciona como calculadora de fletes
- */
-
-class DespachoModel {
-    constructor() {
-        this.reset();
     }
 
     /**
